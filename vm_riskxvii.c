@@ -90,7 +90,20 @@ int main(int argc, char * argv[]) {
     fclose(myfile);
 
     for (int i = 0; i < 64; i++) {
-        printf("%d\n", buffer[i]);
+
+        int val = buffer[i];
+        int k;
+
+        for (int c = 31; c >= 0; c--) {
+            k = val >> c;
+            if (k & 1)
+                printf("1");
+            else  
+                printf("0");
+        }
+
+
+        printf(" = %d\n", buffer[i]);
     }
 
     return 0;
