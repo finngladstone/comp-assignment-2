@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #define TYPE_R 00110011b
-#define TYPE_I 00010011b
+#define TYPE_I 0x13
 #define TYPE_U 00110111b
 #define TYPE_S 00100011b
 #define TYPE_SB 01100011b
@@ -32,6 +32,14 @@ int parse_binary(uint32_t i) {
 
     uint8_t byte1 = i & 0xff;
     printf("Byte 1 = %i\n", byte1);
+
+    uint8_t mask = 0x7F;
+    uint8_t reval = mask & byte1;
+
+    if (reval == TYPE_I)
+        printf("Yes cunt u did it\n");
+    else 
+        printf("Die\n");
     
     
 }
