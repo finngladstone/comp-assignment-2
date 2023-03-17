@@ -13,15 +13,16 @@
 
 /* */
 
-void add() {}
+uint8_t get_opcode(uint32_t i) {
+    uint8_t byte_1 = i & 0xff;
+    uint8_t mask = 0x7F;
 
-void addi() {}
+    return mask & byte_1;
+}
 
-void sub() {}
+uint8_t get_func3(uint32_t i ) {
 
-void lui() {}
-
-
+}
 
 /* Control flow for parsing binary, 32 bits per iteration */
 
@@ -29,33 +30,37 @@ int parse_binary(uint32_t i) {
     
     /* Parse opcode */
 
-    uint8_t byte1 = i & 0xff;
-    printf("Byte 1 = %i\n", byte1);
-
-    uint8_t mask = 0x7F;
-    uint8_t reval = mask & byte1;
-
-    // if (reval == TYPE_R)
-    //     ;
-    // else if (reval == TYPE_I)
-    //     ;
-    // else if (reval == TYPE_U)
-    //     ;
-    // else if (reval == TYPE_S)
-    //     ; 
-    // else if (reval == TYPE_SB)
-    //     ;
-    // else if (reval == TYPE_UJ)
-    //     ;
-    // else {
-    //     printf("Invalid opcode\n");
-    //     exit(1);
+    // if (opcode == TYPE_I) {
+    //     uint8_t byte4 = (i >> (8 * 3)) & 0xff;
+    //     printf("Type I: %i\n", byte4);
     // }
 
-    if (reval == TYPE_I) {
-        uint8_t byte4 = (i >> (8 * 3)) & 0xff;
-        printf("Type I: %i\n", byte4);
+    // // get func3 
+    //     uint8_t f3_mask = 0x70;
+    //     uint8_t byte2 = (i >> (8 * 1)) & 0xff;
+    //     uint8_t opcode = f3_mask & byte2;
+
+    //     printf("Mask = %i\n", opcode);
+
+    uint8_t opcode = get_opcode(i);
+
+    if (opcode == TYPE_R) {}
+
+    else if (opcode == TYPE_I) {
+        printf("still works if 1st parse\n");
     }
+
+    else if (opcode == TYPE_S) {}
+
+    else if (opcode == TYPE_SB) {}
+
+    else if (opcode == TYPE_U) {}
+
+    else if (opcode == TYPE_UJ) {}
+
+    else {}
+
+   
     
     
 }
