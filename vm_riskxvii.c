@@ -28,11 +28,20 @@
 
 /* */
 
+int registers[32];
+int pc;
+
 /* Error blocks */
 
 void func_3_failed() {
     printf("Func3 unrecognised in context\n");
     exit(1);
+}
+
+/* Parsing the instruction codes */
+
+uint32_t isolate_bits(uint32_t i, int start_index, int n) {
+    return (((1 << n) - 1) & (i >> start_index));
 }
 
 uint8_t get_opcode(uint32_t i) {
@@ -53,6 +62,27 @@ uint8_t get_func7(uint32_t i) {
 
 }
 
+uint8_t get_rd(uint32_t i) {
+    // return (((1 << 5) - 1) & (i >> (7))); // how the fuck is this working
+    return isolate_bits(i, 7, 5);
+}
+
+uint16_t get_imm(uint32_t i) { //TYPE COMPATIBLE
+    
+    if (get_opcode(i) == TYPE_I) {
+        // return (((1 << 12) - 1) & (i >> (20)));
+        return isolate_bits(i, 20, 12);
+    }
+} 
+
+uint8_t get_rs_1(uint32_t i) {
+    // return (((1 << 5) - 1) & (i >> (15)));
+    return isolate_bits(i, 15, 5);
+}
+
+uint8_t get_rs_2(uint32_t i) {}
+
+
 /* Control flow for parsing binary, 32 bits per iteration */
 
 int parse_binary(uint32_t i) {
@@ -66,11 +96,16 @@ int parse_binary(uint32_t i) {
         
         case TYPE_R:
         
-        
-        
         case TYPE_I:
 
-            if (func_3 == 0x0) {} // addi
+            printf("RD = %i\n", get_rd(i));
+            printf("IMM = %i\n", get_imm(i));
+            printf("RS1 = %i\n", get_rs_1(i));
+
+            if (func_3 == 0x0) { // addi
+                // R[rd] = R[rs1] + imm
+
+            } 
             
             else if (func_3 == 0x4) {} // xori
 
@@ -140,6 +175,15 @@ int parse_binary(uint32_t i) {
 }
 
 int main(int argc, char * argv[]) {
+
+    /* Setup registers */
+    pc = 0;
+
+    for (int i = 0; i > 32; i++) {
+        registers[i] = 0;
+    }
+
+    
 
     // declare memory here: then pass pointer to fns?
 
