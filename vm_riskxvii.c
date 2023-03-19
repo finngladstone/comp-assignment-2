@@ -1,16 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <math.h>
 
 /* opcode hex values */
 
 #define TYPE_R 0x33
 #define TYPE_I 0x13
-#define TYPE_U 0x37
 #define TYPE_S 0x23
 #define TYPE_SB 0x63
+#define TYPE_U 0x37
 #define TYPE_UJ 0x6F
 
+/* Helper functions */
+
+int raise(int x, int power) {
+    int reval = 1;  
+    for (int i = 1; i <= power; i++)
+        reval *= x;
+
+    return reval;
+}
 
 /* Parse opcode */
 
@@ -28,8 +38,39 @@
 
 /* */
 
+// function pointer for virtual routines
 int registers[32];
 int pc;
+
+/* Virtual routines */
+
+void console_write_char(int i) {
+    printf("%c\n", i);
+}
+
+void console_write_signed(int i) {}
+
+void console_write_unsigned(int i) {}
+
+void halt() {}
+
+void console_read_char() {}
+
+void console_read_signed() {}
+
+void dump() {}
+
+void dump_registers() {}
+
+void dump_mem() {}
+
+void (*virtual_routines[])() = 
+{
+    console_write_char, console_write_signed, console_write_unsigned,
+    halt, console_read_char, console_read_signed, dump, dump_registers, 
+    dump_mem
+};
+
 
 /* Error blocks */
 
@@ -59,7 +100,7 @@ uint8_t get_func3(uint32_t i) {
 }
 
 uint8_t get_func7(uint32_t i) {
-
+    return isolate_bits(i, 25, 7);
 }
 
 uint8_t get_rd(uint32_t i) {
@@ -95,38 +136,123 @@ int parse_binary(uint32_t i) {
         
         
         case TYPE_R:
+            int rs_1 = get_rs_1(i);
+            int rs_2 = get_rs_2(i);
+
+            int func_3 = get_func3(i);
+            int func_7 = get_func7(i);
+
+            int rd = get_rd(i);
+
+            switch(func_7) {
+                case 0:
+                {
+                    if (func_3 == 0x0) {
+                        // add
+                    } 
+
+                    else if (func_3 == 0x4) {
+                        // xor
+                    }
+
+                    else if (func_3 == 0x6) {
+                        // or 
+                    }
+
+                    else if (func_3 == 0x7) {
+                        // and 
+                    } 
+
+                    else if (func_3 == 0x1) {
+                        // sll
+                    }
+
+                    else if (func_3 == 0x5) {
+                        // srl
+                    }
+
+                    else if (func_3 == 0x2) {
+                        // slt
+                    }
+
+                    else if (func_3 == 0x3) {
+                        // sltu
+                    }
+
+                    else {
+                        func_3_failed();
+                    }
+                }
+
+                case 0x20:
+                {
+                    
+                }
+            }
+            
         
-        case TYPE_I:
+        case TYPE_I:   
+        {
+            int rd = get_rd(i);
+            int imm = get_imm(i);
+            int rs_1 = get_rs_1(i);
 
-            printf("RD = %i\n", get_rd(i));
-            printf("IMM = %i\n", get_imm(i));
-            printf("RS1 = %i\n", get_rs_1(i));
+            if (rd == 0) {
+                    printf("Invalid operation - Target register must not be 0\n");
+                    exit(1);
+                }
 
-            if (func_3 == 0x0) { // addi
-                // R[rd] = R[rs1] + imm
-
+            if (func_3 == 0x0) { 
+                // ADDI - R[rd] = R[rs1] + imm
+                registers[rd] = registers[rs_1] + imm;
             } 
             
-            else if (func_3 == 0x4) {} // xori
+            else if (func_3 == 0x4) {
+                // xori 0 RD = RS1 ^ imm
+                registers[rd] = raise(registers[rs_1], imm);
+            } 
 
-            else if (func_3 == 0x6) {} // ori
+            else if (func_3 == 0x6) {
+                // ORI - rd = rs1 | imm
+                registers[rd] = registers[rs_1] | imm;
+            } 
 
-            else if (func_3 == 0x7) {} // andi
+            else if (func_3 == 0x7) {
+                // ANDI - rd = rs1 & imm
+                registers[rd] = registers[rs_1] & imm;
+            } 
 
-            else if (func_3 == 0x2) {} // slti
+            else if (func_3 == 0x2) {
+                // slti - RD = (RS1 < imm) ? 1 : 0
 
-            else if (func_3 == 0x3) {}
+                if (registers[rs_1] < imm)
+                    registers[rd] = 1;
+                else 
+                    registers[rd] = 0;
+            }
+
+            else if (func_3 == 0x3) {
+                // NO SIGNED / UNSIGNED IMPLEMNETATION YET
+                // sltiu - RD = (RS1 < imm) ? 1 : 0
+
+                if (registers[rs_1] < imm)
+                    registers[rd] = 1;
+                else 
+                    registers[rd] = 0;
+            }
 
             else 
                 func_3_failed();
 
             break;
 
-        
-        
+        }
+
         case TYPE_S:
 
-            if (func_3 == 0x0) {} // sb
+            if (func_3 == 0x0) {
+                // sb M[R[rs1] + imm] = R[rs2]
+            } 
 
             else if (func_3 == 0x1) {} // sh
 
@@ -143,7 +269,11 @@ int parse_binary(uint32_t i) {
         
         case TYPE_SB:
 
-            if (func_3 == 0x0) {} // beq
+            if (func_3 == 0x0) {
+                // BEQ
+                // if rs1 == rs2 then PC = PC + (imm << 1)
+                if ()
+            } 
 
             else if (func_3 == 0x1) {} // bne
 
