@@ -12,6 +12,8 @@
 #define TYPE_U 0x37
 #define TYPE_UJ 0x6F
 
+#define REGISTER_NO 32
+
 /* Helper functions */
 
 int raise(int x, int power) {
@@ -38,9 +40,7 @@ int raise(int x, int power) {
 
 /* */
 
-// function pointer for virtual routines
-int registers[32];
-int pc;
+
 
 /* Virtual routines */
 
@@ -126,7 +126,7 @@ uint8_t get_rs_2(uint32_t i) {}
 
 /* Control flow for parsing binary, 32 bits per iteration */
 
-int parse_binary(uint32_t i) {
+int parse_binary(uint32_t i, int * registers, int * p_counter) {
 
     uint8_t opcode = get_opcode(i);
     uint8_t func_3 = get_func3(i);
@@ -136,6 +136,7 @@ int parse_binary(uint32_t i) {
         
         
         case TYPE_R:
+        {
             int rs_1 = get_rs_1(i);
             int rs_2 = get_rs_2(i);
 
@@ -190,7 +191,7 @@ int parse_binary(uint32_t i) {
                 }
             }
             
-        
+        }
         case TYPE_I:   
         {
             int rd = get_rd(i);
@@ -198,9 +199,8 @@ int parse_binary(uint32_t i) {
             int rs_1 = get_rs_1(i);
 
             if (rd == 0) {
-                    printf("Invalid operation - Target register must not be 0\n");
-                    exit(1);
-                }
+                // do nothing
+            }
 
             if (func_3 == 0x0) { 
                 // ADDI - R[rd] = R[rs1] + imm
@@ -272,7 +272,6 @@ int parse_binary(uint32_t i) {
             if (func_3 == 0x0) {
                 // BEQ
                 // if rs1 == rs2 then PC = PC + (imm << 1)
-                if ()
             } 
 
             else if (func_3 == 0x1) {} // bne
@@ -307,16 +306,19 @@ int parse_binary(uint32_t i) {
 int main(int argc, char * argv[]) {
 
     /* Setup registers */
-    pc = 0;
 
-    for (int i = 0; i > 32; i++) {
+    int registers[REGISTER_NO];
+    int program_counter;
+
+    for (int i = 0; i < REGISTER_NO; i++) {
         registers[i] = 0;
     }
 
+    program_counter = 0;    
+
+
+    /* FILE IO*/
     
-
-    // declare memory here: then pass pointer to fns?
-
     FILE *myfile;
     myfile = fopen(argv[1], "rb");
     int32_t buffer[32];
@@ -335,20 +337,22 @@ int main(int argc, char * argv[]) {
 
     for (int i = 0; i < 32; i++) {
 
-        int val = buffer[i];
-        int k;
+        parse_binary(buffer[i], registers, &program_counter);
 
-        for (int c = 31; c >= 0; c--) {
-            k = val >> c;
-            if (k & 1)
-                printf("1");
-            else  
-                printf("0");
-        }
+        // int val = buffer[i];
+        // int k;
+
+        // for (int c = 31; c >= 0; c--) {
+        //     k = val >> c;
+        //     if (k & 1)
+        //         printf("1");
+        //     else  
+        //         printf("0");
+        // }
 
 
-        printf(" = %d\n", buffer[i]);
-        parse_binary(buffer[i]);
+        // printf(" = %d\n", buffer[i]);
+        
     }
 
     return 0;
