@@ -149,45 +149,63 @@ int parse_binary(uint32_t i, int * registers, int * p_counter) {
                 case 0:
                 {
                     if (func_3 == 0x0) {
-                        // add
+                        registers[rd] = registers[rs_1] + registers[rs_2];
                     } 
 
                     else if (func_3 == 0x4) {
-                        // xor
+                        registers[rd] = registers[rs_1] ^ registers[rs_2];
                     }
 
                     else if (func_3 == 0x6) {
-                        // or 
+                        registers[rd] = registers[rs_1] | registers[rs_2];
                     }
 
                     else if (func_3 == 0x7) {
-                        // and 
+                        registers[rd] = registers[rs_1] & registers[rs_2];
                     } 
 
                     else if (func_3 == 0x1) {
-                        // sll
+                        registers[rd] = registers[rs_1] << registers[rs_2];
                     }
 
                     else if (func_3 == 0x5) {
-                        // srl
+                        registers[rd] = registers[rs_1] >> registers[rs_2];
                     }
 
                     else if (func_3 == 0x2) {
-                        // slt
+                        registers[rd] = (registers[rs_1]  < registers[rs_2]) ? 1 : 0;
                     }
 
-                    else if (func_3 == 0x3) {
-                        // sltu
+                    else if (func_3 == 0x3) { // no unsigned implementation
+                        registers[rd] = (registers[rs_1]  < registers[rs_2]) ? 1 : 0;
                     }
 
                     else {
                         func_3_failed();
                     }
+
+                    break;
                 }
 
                 case 0x20:
                 {
-                    
+                    if (func_3 == 0x0) {
+                        registers[rd] = registers[rs_1] - registers[rs_2];
+                    }
+
+                    else if (func_3 == 0x5) {
+                        registers[rd] = registers[rs_1] >> registers[rs_2];
+                    }
+
+                    else 
+                        func_3_failed();
+
+                    break;
+                }
+
+                default:
+                {
+                    // func 7 failed
                 }
             }
             
