@@ -64,12 +64,9 @@ void dump_registers() {}
 
 void dump_mem() {}
 
-void (*virtual_routines[])() = 
-{
-    console_write_char, console_write_signed, console_write_unsigned,
-    halt, console_read_char, console_read_signed, dump, dump_registers, 
-    dump_mem
-};
+void heap_malloc() {}
+
+void heap_free() {}
 
 
 /* Error blocks */
@@ -108,12 +105,54 @@ uint8_t get_rd(uint32_t i) {
     return isolate_bits(i, 7, 5);
 }
 
-uint16_t get_imm(uint32_t i) { //TYPE COMPATIBLE
+uint32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
+
+    switch (get_opcode(i)) {
+        
+        case TYPE_I:
+            return isolate_bits(i, 20, 12);
+
+        case TYPE_S:
+        {
+            uint16_t result = 0x0;
+            result = isolate_bits(i, 0, 4) | result;
+            result = isolate_bits(i, 25, 7) << 5 | result;
+
+            return result;
+        }
+
+        case TYPE_SB:
+        {
+            uint16_t result = 0x0;
+            result = isolate_bits(i, 0, 1) << 11 | result;
+            result = isolate_bits(i, 1, 4) | result;
+            result = isolate_bits(i, 25, 5) << 5 | result;
+            result = isolate_bits(i, 31, 1) << 12 | result;
+        }
+            
+        case TYPE_U:
+            return isolate_bits(i, 12, 20);
+
+        case TYPE_UJ:
+        
+        {
+            uint32_t result = 0x0; // 21 digits!
+
+            result = isolate_bits(i, 31, 1) << 20 | result;
+            result = isolate_bits(i, 21, 10) << 1 | result;
+            result = isolate_bits(i, 20, 1) << 11 | result;
+            result = isolate_bits(i, 12, 8) << 12 | result;
+
+            return result;
+        }
+
+        default:
+            break;
+    }
     
     if (get_opcode(i) == TYPE_I) {
-        // return (((1 << 12) - 1) & (i >> (20)));
         return isolate_bits(i, 20, 12);
-    }
+    } 
 } 
 
 uint8_t get_rs_1(uint32_t i) {
@@ -123,31 +162,36 @@ uint8_t get_rs_1(uint32_t i) {
 
 uint8_t get_rs_2(uint32_t i) {}
 
+/* Handles virtual routines + storage*/
+
+void write_to_memory(int mem_address) {}
+
+int query_from_memory(int mem_address) {}
+
 
 /* Control flow for parsing binary, 32 bits per iteration */
 
 int parse_binary(uint32_t i, int * registers, int * p_counter) {
 
     uint8_t opcode = get_opcode(i);
+
+    int rs_1 = get_rs_1(i);
+    int rs_2 = get_rs_2(i);
+
     uint8_t func_3 = get_func3(i);
+    int func_7 = get_func7(i);
+
+    int rd = get_rd(i);
+    int imm = get_imm(i);
 
     switch(opcode)
-    {
-        
-        
+    {   
         case TYPE_R:
         {
-            int rs_1 = get_rs_1(i);
-            int rs_2 = get_rs_2(i);
-
-            int func_3 = get_func3(i);
-            int func_7 = get_func7(i);
-
-            int rd = get_rd(i);
-
             switch(func_7) {
                 case 0:
                 {
+
                     if (func_3 == 0x0) {
                         registers[rd] = registers[rs_1] + registers[rs_2];
                     } 
@@ -183,9 +227,8 @@ int parse_binary(uint32_t i, int * registers, int * p_counter) {
                     else {
                         func_3_failed();
                     }
-
-                    break;
                 }
+                break;
 
                 case 0x20:
                 {
@@ -212,9 +255,6 @@ int parse_binary(uint32_t i, int * registers, int * p_counter) {
         }
         case TYPE_I:   
         {
-            int rd = get_rd(i);
-            int imm = get_imm(i);
-            int rs_1 = get_rs_1(i);
 
             if (rd == 0) {
                 // do nothing
@@ -261,10 +301,8 @@ int parse_binary(uint32_t i, int * registers, int * p_counter) {
 
             else 
                 func_3_failed();
-
-            break;
-
         }
+            break;
 
         case TYPE_S:
 
@@ -287,32 +325,54 @@ int parse_binary(uint32_t i, int * registers, int * p_counter) {
         
         case TYPE_SB:
 
-            if (func_3 == 0x0) {
-                // BEQ
-                // if rs1 == rs2 then PC = PC + (imm << 1)
+            if (func_3 == 0x0) {  // BEQ
+                if (registers[rs_1] == registers[rs_2])
+                    p_counter += (imm << 1);
             } 
 
-            else if (func_3 == 0x1) {} // bne
+            else if (func_3 == 0x1) { //  BNE
+                if (registers[rs_1] != registers[rs_2])
+                    p_counter += (imm << 1);
+            } 
 
-            else if (func_3 == 0x4) {} // blt
+            else if (func_3 == 0x4) {  // blt
+                if (registers[rs_1] < registers[rs_2])
+                    p_counter += (imm << 1);
+            }
 
-            else if (func_3 == 0x6) {} // bltu
+            else if (func_3 == 0x6) { // bltu - NEEDS UNSIGNED
+                if (registers[rs_1] < registers[rs_2])
+                    p_counter += (imm << 1);
+            } 
 
-            else if (func_3 == 0x5) {} // bge
+            else if (func_3 == 0x5) { // bge
+                if (registers[rs_1] >= registers[rs_2])
+                    p_counter += (imm << 1);
+            } 
 
-            else if (func_3 == 0x7) {}
+            else if (func_3 == 0x7) { // NEEDS UNSIGNED
+                if (registers[rs_1] >= registers[rs_2])
+                    p_counter += (imm << 1);
+            }
 
             else 
                 func_3_failed();
-
+            
             break;
 
 
 
         case TYPE_U:
+        {
+            // lui
+        }
             break;
         
         case TYPE_UJ:
+        {
+            registers[rd] = *p_counter + 4;
+            p_counter = p_counter + (imm << 1);
+        }
             break;
 
         default:
@@ -353,23 +413,28 @@ int main(int argc, char * argv[]) {
 
     fclose(myfile);
 
+    
+    // while (1) {
+    //     parse_binary(buffer[program_counter], registers, &program_counter);
+    // }
+
     for (int i = 0; i < 32; i++) {
 
         parse_binary(buffer[i], registers, &program_counter);
 
-        // int val = buffer[i];
-        // int k;
+        int val = buffer[i];
+        int k;
 
-        // for (int c = 31; c >= 0; c--) {
-        //     k = val >> c;
-        //     if (k & 1)
-        //         printf("1");
-        //     else  
-        //         printf("0");
-        // }
+        for (int c = 31; c >= 0; c--) {
+            k = val >> c;
+            if (k & 1)
+                printf("1");
+            else  
+                printf("0");
+        }
 
 
-        // printf(" = %d\n", buffer[i]);
+        printf(" = %d\n", buffer[i]);
         
     }
 
