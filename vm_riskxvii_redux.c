@@ -9,6 +9,10 @@
 #define REGISTER_COUNT 32
 #define INSTRUCTION_SIZE 512
 
+/* Etc */
+
+#define ARGS uint32_t i, int * registers, int * program_count
+
 /* Opcode hex values */
 
 #define TYPE_R 0x33
@@ -41,10 +45,65 @@ void parse_file(char * filename, int * buffer) {
     return;
 }
 
-void parse_TYPE_R();
+void parse_TYPE_R_00(ARGS) {
+    int * data = code_arr(i);
 
-void parse_binary(uint32_t i, int * registers, int * program_count) {
-    // int * data = code_arr(i);
+    switch(data[FUNC3_INDEX]) {
+        case 0x0:
+        {
+
+        }
+
+        case 0x4:
+        {
+
+        }
+
+        case 0x6:
+        {
+
+        }
+
+        case 0x7:
+        {
+
+        }
+
+        case 0x1:
+        {
+
+        }
+
+        case 0x5:
+        {
+
+        }
+
+        case 0x2:
+        {
+
+        }
+
+        case 0x3:
+        {
+            
+        }
+    }
+}
+
+void parse_TYPE_R_01(ARGS) {}
+
+void parse_TYPE_I(ARGS) {}
+
+void parse_TYPE_S(ARGS) {}
+
+void parse_TYPE_SB(ARGS) {}
+
+void parse_TYPE_U(ARGS) {}
+
+void parse_TYPE_UJ(ARGS) {}
+ 
+void parse_binary(ARGS) {
 
     switch(get_opcode(i))
     {
