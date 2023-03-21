@@ -11,6 +11,19 @@
 #define TYPE_U 0x37
 #define TYPE_UJ 0x6F
 
+struct data {
+    int opcode;
+    
+    int func3;
+    int func7;
+
+    int rd;
+    int imm;
+
+    int rs1;
+    int rs2;
+};
+
 /* 
     isolate_bits
     Calculates integer value of certain bits from an integer
@@ -117,4 +130,38 @@ int * code_arr(uint32_t i) {
     };
 
     return reval;
+}
+
+// struct data* get_data_struct(uint32_t i) {
+//     struct data* new = (struct data*)malloc(sizeof(struct data)); 
+    
+//     new->opcode = get_opcode(i);
+//     new->func3 = get_func3(i);
+//     new->func7 = get_func7(i);
+    
+//     new->imm = get_imm(i);
+//     new->rd = get_rd(i);
+
+//     new->rs1 = get_rs_1(i);
+//     new->rs2 = get_rs_2(i);
+
+//     return new;
+// }
+
+void update_data_struct(struct data * codes, uint32_t i) {
+    codes->opcode = get_opcode(i);
+    codes->func3 = get_func3(i);
+    codes->func7 = get_func7(i);
+    
+    codes->imm = get_imm(i);
+    codes->rd = get_rd(i);
+
+    codes->rs1 = get_rs_1(i);
+    codes->rs2 = get_rs_2(i);
+}
+
+int within_range(int lower, int upper, int val) {
+    if (val >= lower && val <= upper)
+        return 1;
+    return 0;
 }

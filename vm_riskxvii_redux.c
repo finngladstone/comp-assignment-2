@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "bit_ops.c"
+#include "logic_ops.c"
 
 /* Key constants */
 
@@ -11,7 +12,9 @@
 
 /* Etc */
 
-#define ARGS uint32_t i, int * registers, int * program_count
+#define ARGS uint32_t i, int * registers, int * program_count // this is template for binary parse
+#define ARGS2 struct data codes, int * registers, int * program_count // this is template for logic / mem ops
+#define ARGS3 *codes, registers, &program_count // this gets sent to logic / mem ops
 
 /* Opcode hex values */
 
@@ -22,15 +25,17 @@
 #define TYPE_U 0x37
 #define TYPE_UJ 0x6F
 
-/* Helping with binary parsing */
+/* Error blocks */
 
-#define OPCODE_INDEX 0
-#define RD_INDEX 1
-#define FUNC3_INDEX 2
-#define FUNC7_INDEX 3
-#define RS1_INDEX 4
-#define RS2_INDEX 5
-#define IMM_INDEX 6
+void func3_fail() {
+    printf("Func3 - undefined behaviour.\n");
+    exit(1);
+}
+
+void func7_fail() {
+    printf("Func7 - undefined behaviour.\n");
+    exit(1);
+}
 
 void parse_file(char * filename, int * buffer) {
     FILE * binaryfile;
@@ -45,100 +50,46 @@ void parse_file(char * filename, int * buffer) {
     return;
 }
 
-void parse_TYPE_R_00(ARGS) {
-    int * data = code_arr(i);
+/* Function pointer arrays */
 
-    switch(data[FUNC3_INDEX]) {
-        case 0x0:
-        {
+// https://stackoverflow.com/questions/252748/how-can-i-use-an-array-of-function-pointers
 
-        }
+void (*TYPE_R_Pointer[8])(ARGS2) = {add, sll, slt, sltu, xor, srl, or, and};
+// void (*TYPE_I_Pointer[12])(ARGS) = {addi, xori, ori, andi, }
+// void (*TYPE_S_Pointer[3])(ARGS) = {s}
+void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
 
-        case 0x4:
-        {
+// add for UJ
+// add for type R 010000
 
-        }
-
-        case 0x6:
-        {
-
-        }
-
-        case 0x7:
-        {
-
-        }
-
-        case 0x1:
-        {
-
-        }
-
-        case 0x5:
-        {
-
-        }
-
-        case 0x2:
-        {
-
-        }
-
-        case 0x3:
-        {
-            
-        }
-    }
-}
-
-void parse_TYPE_R_01(ARGS) {}
-
-void parse_TYPE_I(ARGS) {}
-
-void parse_TYPE_S(ARGS) {}
-
-void parse_TYPE_SB(ARGS) {}
-
-void parse_TYPE_U(ARGS) {}
-
-void parse_TYPE_UJ(ARGS) {}
+/* FUNCTION ROUTER */
  
-void parse_binary(ARGS) {
+void parse_binary(ARGS) { 
+    struct data * codes;
+    update_data_struct(&codes, i);
 
-    switch(get_opcode(i))
-    {
+    switch(codes->opcode) {
         case TYPE_R:
         {
-
+            if (codes->func7 == 32) {
+                if (codes->func3 == 0) 
+                    sub(ARGS3);
+                else if (codes->func3 == 5) 
+                    sra(ARGS3);
+                else 
+                    func3_fail();
+            } 
+            
+            else if (codes->func7 == 0) {
+                if (within_range(0, 7, codes->func3))
+                    (*TYPE_R_Pointer[codes->func3])(ARGS3);
+                else 
+                    func3_fail();
+            } else 
+                func7_fail();
         }
 
-        case TYPE_I:
-        {
 
-        }
-
-        case TYPE_S:
-        {
-
-        }
-
-        case TYPE_SB:
-        {
-
-        }
-        
-        case TYPE_U:
-        {
-
-        }
-
-        case TYPE_UJ:
-        {
-
-        }
-
-        default:
-            break;
     }
 }
 
