@@ -19,7 +19,11 @@
 /* Opcode hex values */
 
 #define TYPE_R 0x33
+
 #define TYPE_I 0x13
+#define TYPE_I_2 0x3
+#define TYPE_I_3 0x67
+
 #define TYPE_S 0x23
 #define TYPE_SB 0x63
 #define TYPE_U 0x37
@@ -44,7 +48,7 @@ void parse_file(char * filename, int * buffer) {
     if (binaryfile == NULL)
         printf("Failed to read file: %s\n", filename);
 
-    fread(buffer, sizeof(int), 512, binaryfile);
+    fread(buffer, sizeof(int), INSTRUCTION_SIZE, binaryfile);
     fclose(binaryfile);
 
     return;
@@ -55,12 +59,14 @@ void parse_file(char * filename, int * buffer) {
 // https://stackoverflow.com/questions/252748/how-can-i-use-an-array-of-function-pointers
 
 void (*TYPE_R_Pointer[8])(ARGS2) = {add, sll, slt, sltu, xor, srl, or, and};
-// void (*TYPE_I_Pointer[12])(ARGS) = {addi, xori, ori, andi, }
-// void (*TYPE_S_Pointer[3])(ARGS) = {s}
-void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
 
-// add for UJ
-// add for type R 010000
+void (*TYPE_I_Pointer[7])(ARGS2) = {addi, NULL, slti, sltiu, xori, ori, andi};
+
+void (*TYPE_I_Pointer2[5])(ARGS2) = {lb, lh, lw, lbu, lhu};
+
+void (*TYPE_S_Pointer[3])(ARGS2) = {sb, sh, sw};
+
+void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
 
 /* FUNCTION ROUTER */
  
@@ -87,9 +93,44 @@ void parse_binary(ARGS) {
                     func3_fail();
             } else 
                 func7_fail();
+            
+            break;
         }
 
+        case TYPE_I:
+        {
+            
+        }
 
+        case TYPE_I_2:
+        {
+
+        }
+
+        case TYPE_I_3:
+        {
+
+        }
+
+        case TYPE_S:
+        {
+
+        }
+
+        case TYPE_SB:
+        {
+
+        }
+
+        case TYPE_U:
+        {
+
+        }
+
+        case TYPE_UJ:
+        {
+
+        }
     }
 }
 

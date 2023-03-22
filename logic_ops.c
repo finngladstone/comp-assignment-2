@@ -4,16 +4,6 @@
 
 #include "bit_ops.c"
 
-/* Helping with binary parsing */
-
-#define OPCODE_INDEX 0
-#define RD_INDEX 1
-#define FUNC3_INDEX 2
-#define FUNC7_INDEX 3
-#define RS1_INDEX 4
-#define RS2_INDEX 5
-#define IMM_INDEX 6
-
 /* Default arguments*/
 
 #define ARGS struct data codes, int * registers, int * program_count
@@ -21,19 +11,19 @@
 void add(ARGS) {
     registers[codes.rd] = registers[codes.rs1] + registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void addi(ARGS) {
     registers[codes.rd] = registers[codes.rs1] + codes.imm;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void sub(ARGS) {
     registers[codes.rd] = registers[codes.rs1] - registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void lui(ARGS) {
@@ -41,87 +31,105 @@ void lui(ARGS) {
     i = i | (codes.imm << 11);
     registers[codes.rd] = i;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void xor(ARGS) {
     registers[codes.rd] = registers[codes.rs1] ^ registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void xori(ARGS) {
     registers[codes.rd] = registers[codes.rs1] ^ codes.imm;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void or(ARGS) {
     registers[codes.rd] = registers[codes.rs1] | registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void ori(ARGS) {
     registers[codes.rd] = registers[codes.rs1] | codes.imm;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void and(ARGS) {
     registers[codes.rd] = registers[codes.rs1] & registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void andi(ARGS) {
     registers[codes.rd] = registers[codes.rs1] & codes.imm;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void sll(ARGS) {
     registers[codes.rd] = registers[codes.rs1] << registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void srl(ARGS) {
     registers[codes.rd] = registers[codes.rs1] >> registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void sra(ARGS) {
     registers[codes.rd] = registers[codes.rs1] >> registers[codes.rs2];
 
-    program_count += 1;
+    program_count += 4;
 }
+
+/* Memory access operations */
+
+void lb(ARGS) {}
+
+void lh(ARGS) {}
+
+void lw(ARGS) {}
+
+void lbu(ARGS) {}
+
+void lhu(ARGS) {}
+
+void sb(ARGS) {}
+
+void sh(ARGS) {}
+
+void sw(ARGS) {}
 
 /* Program flow operations */
 
 void slt(ARGS) {
     registers[codes.rd] = (registers[codes.rs1] < registers[codes.rs2]) ? 1 : 0;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void slti(ARGS) {
     registers[codes.rd] = (registers[codes.rs1] < codes.imm) ? 1 : 0;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void sltu(ARGS) { // unsigned
     registers[codes.rd] = (registers[codes.rs1] < registers[codes.rs2]) ? 1 : 0;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void sltiu(ARGS) { // unsigned
     registers[codes.rd] = (registers[codes.rs1] < codes.imm) ? 1 : 0;
 
-    program_count += 1;
+    program_count += 4;
 }
 
 void beq(ARGS) {
