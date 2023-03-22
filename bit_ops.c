@@ -62,7 +62,7 @@ uint8_t get_rd(uint32_t i) {
     return isolate_bits(i, 7, 5);
 }
 
-uint32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
+int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
 
     switch (get_opcode(i)) {
         

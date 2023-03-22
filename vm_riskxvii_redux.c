@@ -78,7 +78,10 @@ void parse_binary(ARGS) {
     struct data * codes;
     update_data_struct(codes, i);
 
+    printf("Opcode = %x, RD = %i, imm = %i\n", codes->opcode, codes->rd, codes->imm);
+
     switch(codes->opcode) {
+
         case TYPE_R:
         {
             if (codes->func7 == 32) {
@@ -190,12 +193,17 @@ int main(int argc, char * argv[]) {
     program_counter = 0;
  
     parse_file(argv[1], memory_image);
-    for (int i = 0; i < 9; i++)
-        parse_binary(memory_image[i], registers, &program_counter);
-
-    // while (1) {
-    //     parse_binary(file_instructions[program_counter/4], registers, &program_counter);
+    // for (int i = 0; i < 9; i++) {
+    //     parse_binary(memory_image[i], registers, &program_counter);
+    //     printf("PC = %i\n", program_counter);
     // }
+
+    
+
+    while (1) {
+        parse_binary(memory_image[program_counter/4], registers, &program_counter);
+        printf("PC = %i\n", program_counter);
+    }
 
     return 0;
 }
