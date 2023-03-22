@@ -210,9 +210,9 @@ int main(int argc, char * argv[]) {
         printf("PC = %i, ", program_counter);
         parse_binary(memory_image[program_counter/4], registers, &program_counter);
 
-        for (int i = 0; i < REGISTER_COUNT; i++) {
-            printf("R[%i] = %i\n", i, registers[i]);
-        }
+        // for (int i = 0; i < REGISTER_COUNT; i++) {
+        //     printf("R[%i] = %i\n", i, registers[i]);
+        // }
         
     }
 

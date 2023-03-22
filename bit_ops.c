@@ -80,12 +80,11 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
 
         case TYPE_S:
         {
-            int32_t result = 0x0;
+            uint32_t result = 0x0;
             result = isolate_bits(i, 7, 5) | result;
             result = isolate_bits(i, 25, 7) << 5 | result;
 
-            if ((isolate_bits(i, 31, 1)) == 1)
-                result *= -1;
+            result = (int32_t)(result << 20) >> 20;
 
             return result;
         }
@@ -119,10 +118,6 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             printf("Failed to parse imm\n");
             break;;
     }
-    
-    if (get_opcode(i) == TYPE_I) {
-        return isolate_bits(i, 20, 12);
-    } 
 } 
 
 uint8_t get_rs_1(uint32_t i) {
