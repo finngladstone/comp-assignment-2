@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "bit_ops.c"
 #include "logic_ops.c"
 
 /* Key constants */
@@ -14,7 +13,7 @@
 
 #define ARGS uint32_t i, int * registers, int * program_count // this is template for binary parse
 #define ARGS2 struct data codes, int * registers, int * program_count // this is template for logic / mem ops
-#define ARGS3 *codes, registers, &program_count // this gets sent to logic / mem ops
+#define ARGS3 *codes, registers, program_count // this gets sent to logic / mem ops
 
 /* Opcode hex values */
 
@@ -38,6 +37,11 @@ void func3_fail() {
 
 void func7_fail() {
     printf("Func7 - undefined behaviour.\n");
+    exit(1);
+}
+
+void opcode_fail() {
+    printf("Opcode - undefined behaviour.\n");
     exit(1);
 }
 
@@ -72,7 +76,7 @@ void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
  
 void parse_binary(ARGS) { 
     struct data * codes;
-    update_data_struct(&codes, i);
+    update_data_struct(codes, i);
 
     switch(codes->opcode) {
         case TYPE_R:
@@ -99,37 +103,74 @@ void parse_binary(ARGS) {
 
         case TYPE_I:
         {
-            
+            if (within_range(0, 6, codes->func3) && codes->func3 != 1) {
+                (*TYPE_I_Pointer[codes->func3])(ARGS3);
+            } else {
+                func3_fail();
+            }
+
+            break;
         }
 
         case TYPE_I_2:
         {
+            if (within_range(0, 4, codes->func3)) {
+                (*TYPE_I_Pointer2[codes->func3])(ARGS3);
+            } else {
+                func3_fail();
+            }
 
+            break;
         }
 
         case TYPE_I_3:
         {
-
+            if (codes->func3 == 0x0)
+                jalr(ARGS3);
+            else
+                func3_fail();
+            
+            break;
         }
 
         case TYPE_S:
         {
+            if (within_range(0, 2, codes->func3)) {
+                (*TYPE_S_Pointer[codes->func3])(ARGS3);
+            } else {
+                func3_fail();
+            }
 
+            break;
         }
 
         case TYPE_SB:
         {
+            if (within_range(0, 5, codes->func3)) {
+                (*TYPE_S_Pointer[codes->func3])(ARGS3);
+            } else {
+                func3_fail();
+            }
 
+            break;
         }
 
         case TYPE_U:
         {
-
+            lui(ARGS3);
+            break;
         }
 
         case TYPE_UJ:
         {
+            jal(ARGS3);
+            break;
+        }
 
+        default:
+        {
+            opcode_fail();
+            break;
         }
     }
 }

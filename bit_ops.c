@@ -121,17 +121,6 @@ uint8_t get_rs_2(uint32_t i) {
     return isolate_bits(i, 20, 5);
 }
 
-int * code_arr(uint32_t i) {
-    int reval[7] = 
-    {
-    get_opcode(i), get_rd(i), get_func3(i),
-    get_func7(i), get_rs_1(i), get_rs_2(i),
-    get_imm(i)
-    };
-
-    return reval;
-}
-
 // struct data* get_data_struct(uint32_t i) {
 //     struct data* new = (struct data*)malloc(sizeof(struct data)); 
     

@@ -6,27 +6,27 @@
 
 /* Default arguments*/
 
-#define ARGS struct data codes, int * registers, int * program_count
+#define LOGIC_OP_ARGS struct data codes, int * registers, int * program_count
 
-void add(ARGS) {
+void add(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] + registers[codes.rs2];
 
     program_count += 4;
 }
 
-void addi(ARGS) {
+void addi(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] + codes.imm;
 
     program_count += 4;
 }
 
-void sub(ARGS) {
+void sub(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] - registers[codes.rs2];
 
     program_count += 4;
 }
 
-void lui(ARGS) {
+void lui(LOGIC_OP_ARGS) {
     int32_t i = 0;
     i = i | (codes.imm << 11);
     registers[codes.rd] = i;
@@ -34,55 +34,55 @@ void lui(ARGS) {
     program_count += 4;
 }
 
-void xor(ARGS) {
+void xor(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] ^ registers[codes.rs2];
 
     program_count += 4;
 }
 
-void xori(ARGS) {
+void xori(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] ^ codes.imm;
 
     program_count += 4;
 }
 
-void or(ARGS) {
+void or(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] | registers[codes.rs2];
 
     program_count += 4;
 }
 
-void ori(ARGS) {
+void ori(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] | codes.imm;
 
     program_count += 4;
 }
 
-void and(ARGS) {
+void and(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] & registers[codes.rs2];
 
     program_count += 4;
 }
 
-void andi(ARGS) {
+void andi(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] & codes.imm;
 
     program_count += 4;
 }
 
-void sll(ARGS) {
+void sll(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] << registers[codes.rs2];
 
     program_count += 4;
 }
 
-void srl(ARGS) {
+void srl(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] >> registers[codes.rs2];
 
     program_count += 4;
 }
 
-void sra(ARGS) {
+void sra(LOGIC_OP_ARGS) {
     registers[codes.rd] = registers[codes.rs1] >> registers[codes.rs2];
 
     program_count += 4;
@@ -90,85 +90,85 @@ void sra(ARGS) {
 
 /* Memory access operations */
 
-void lb(ARGS) {}
+void lb(LOGIC_OP_ARGS) {}
 
-void lh(ARGS) {}
+void lh(LOGIC_OP_ARGS) {}
 
-void lw(ARGS) {}
+void lw(LOGIC_OP_ARGS) {}
 
-void lbu(ARGS) {}
+void lbu(LOGIC_OP_ARGS) {}
 
-void lhu(ARGS) {}
+void lhu(LOGIC_OP_ARGS) {}
 
-void sb(ARGS) {}
+void sb(LOGIC_OP_ARGS) {}
 
-void sh(ARGS) {}
+void sh(LOGIC_OP_ARGS) {}
 
-void sw(ARGS) {}
+void sw(LOGIC_OP_ARGS) {}
 
 /* Program flow operations */
 
-void slt(ARGS) {
+void slt(LOGIC_OP_ARGS) {
     registers[codes.rd] = (registers[codes.rs1] < registers[codes.rs2]) ? 1 : 0;
 
     program_count += 4;
 }
 
-void slti(ARGS) {
+void slti(LOGIC_OP_ARGS) {
     registers[codes.rd] = (registers[codes.rs1] < codes.imm) ? 1 : 0;
 
     program_count += 4;
 }
 
-void sltu(ARGS) { // unsigned
+void sltu(LOGIC_OP_ARGS) { // unsigned
     registers[codes.rd] = (registers[codes.rs1] < registers[codes.rs2]) ? 1 : 0;
 
     program_count += 4;
 }
 
-void sltiu(ARGS) { // unsigned
+void sltiu(LOGIC_OP_ARGS) { // unsigned
     registers[codes.rd] = (registers[codes.rs1] < codes.imm) ? 1 : 0;
 
     program_count += 4;
 }
 
-void beq(ARGS) {
+void beq(LOGIC_OP_ARGS) {
     
     if (registers[codes.rs1] == registers[codes.rs2])
         program_count += (codes.imm << 1);
 }
 
-void bne(ARGS) {
+void bne(LOGIC_OP_ARGS) {
     
     if (registers[codes.rs1] != registers[codes.rs2])
         program_count += (codes.imm << 1);
 }
 
-void blt(ARGS) {
+void blt(LOGIC_OP_ARGS) {
     
     if (registers[codes.rs1] < registers[codes.rs2])
         program_count += (codes.imm << 1);
 }
 
-void bltu(ARGS) { // unsigned
+void bltu(LOGIC_OP_ARGS) { // unsigned
     
 }
 
-void bge(ARGS) {
+void bge(LOGIC_OP_ARGS) {
     
     if (registers[codes.rs1] >= registers[codes.rs2])
         program_count += (codes.imm << 1);
 }
 
-void bgeu(ARGS) {} // unsigned
+void bgeu(LOGIC_OP_ARGS) {} // unsigned
 
-void jal(ARGS) {
+void jal(LOGIC_OP_ARGS) {
 
-    registers[codes.rd] = program_count + 4;
+    registers[codes.rd] = *program_count + 4;
     program_count += (codes.imm << 1);
 }
 
-void jalr(ARGS) {
-    registers[codes.rd] = program_count + 4;
-    program_count = registers[codes.rs1] + codes.imm;
+void jalr(LOGIC_OP_ARGS) {
+    registers[codes.rd] = *program_count + 4;
+    program_count = &(registers[codes.rs1]) + codes.imm;
 }
