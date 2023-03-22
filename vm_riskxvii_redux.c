@@ -7,7 +7,7 @@
 /* Key constants */
 
 #define REGISTER_COUNT 32
-#define INSTRUCTION_SIZE 512
+#define MEMORY_SIZE 512
 
 /* Etc */
 
@@ -52,7 +52,7 @@ void parse_file(char * filename, int * buffer) {
     if (binaryfile == NULL)
         printf("Failed to read file: %s\n", filename);
 
-    fread(buffer, sizeof(int), INSTRUCTION_SIZE, binaryfile);
+    fread(buffer, sizeof(int), MEMORY_SIZE, binaryfile);
     fclose(binaryfile);
 
     return;
@@ -178,16 +178,24 @@ void parse_binary(ARGS) {
 int main(int argc, char * argv[]) {
     int registers[REGISTER_COUNT];
     int program_counter;
-    int file_instructions[INSTRUCTION_SIZE];
+    int memory_image[MEMORY_SIZE];
 
     for (int i = 0; i < REGISTER_COUNT; i++)
         registers[i] = 0;
 
+    for (int i = 0; i < MEMORY_SIZE; i++) {
+        memory_image[i] = 0;
+    }
+
     program_counter = 0;
  
-    parse_file(argv[1], file_instructions);
+    parse_file(argv[1], memory_image);
     for (int i = 0; i < 9; i++)
-        parse_binary(file_instructions[i], registers, &program_counter);
+        parse_binary(memory_image[i], registers, &program_counter);
+
+    // while (1) {
+    //     parse_binary(file_instructions[program_counter/4], registers, &program_counter);
+    // }
 
     return 0;
 }
