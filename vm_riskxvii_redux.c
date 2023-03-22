@@ -28,6 +28,12 @@
 #define TYPE_U 0x37
 #define TYPE_UJ 0x6F
 
+void printbits(int x)
+{
+    for(int i=sizeof(x)<<3; i; i--)
+        putchar('0'+((x>>(i-1))&1));
+}
+
 /* Error blocks */
 
 void func3_fail() {
@@ -201,8 +207,13 @@ int main(int argc, char * argv[]) {
     
 
     while (1) {
+        printf("PC = %i, ", program_counter);
         parse_binary(memory_image[program_counter/4], registers, &program_counter);
-        printf("PC = %i\n", program_counter);
+
+        for (int i = 0; i < REGISTER_COUNT; i++) {
+            printf("R[%i] = %i\n", i, registers[i]);
+        }
+        
     }
 
     return 0;

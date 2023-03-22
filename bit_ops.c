@@ -6,6 +6,9 @@
 
 #define TYPE_R 0x33
 #define TYPE_I 0x13
+#define TYPE_I_2 0x3
+#define TYPE_I_3 0x67
+
 #define TYPE_S 0x23
 #define TYPE_SB 0x63
 #define TYPE_U 0x37
@@ -69,18 +72,27 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
         case TYPE_I:
             return isolate_bits(i, 20, 12);
 
+        case TYPE_I_2:
+            return isolate_bits(i, 20, 12);
+
+        case TYPE_I_3:
+            return isolate_bits(i, 20, 12);
+
         case TYPE_S:
         {
-            uint16_t result = 0x0;
-            result = isolate_bits(i, 0, 4) | result;
+            int32_t result = 0x0;
+            result = isolate_bits(i, 7, 5) | result;
             result = isolate_bits(i, 25, 7) << 5 | result;
+
+            if ((isolate_bits(i, 31, 1)) == 1)
+                result *= -1;
 
             return result;
         }
 
         case TYPE_SB:
         {
-            uint16_t result = 0x0;
+            int16_t result = 0x0;
             result = isolate_bits(i, 0, 1) << 11 | result;
             result = isolate_bits(i, 1, 4) | result;
             result = isolate_bits(i, 25, 5) << 5 | result;
@@ -88,12 +100,12 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
         }
             
         case TYPE_U:
-            return isolate_bits(i, 12, 20);
+            return (uint32_t) isolate_bits(i, 12, 20);
 
         case TYPE_UJ:
         
         {
-            uint32_t result = 0x0; // 21 digits!
+            int32_t result = 0x0; // 21 digits!
 
             result = isolate_bits(i, 31, 1) << 20 | result;
             result = isolate_bits(i, 21, 10) << 1 | result;
@@ -104,7 +116,8 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
         }
 
         default:
-            break;
+            printf("Failed to parse imm\n");
+            break;;
     }
     
     if (get_opcode(i) == TYPE_I) {

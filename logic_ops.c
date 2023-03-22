@@ -16,7 +16,7 @@ void memory_address_invalid(int address) {
 /* Virtual routines */
 
 void console_write_character(int ascii) {
-    printf("%d", ascii);
+    printf("%c", ascii);
 }
 
 void console_write_signed_int(int value) {
@@ -159,7 +159,7 @@ void sub(LOGIC_OP_ARGS) {
 
 void lui(LOGIC_OP_ARGS) {
     int32_t i = 0;
-    i = i | (codes.imm << 11);
+    i = i | (codes.imm << 12);
     
     if (codes.rd != 0)
         registers[codes.rd] = i;
@@ -364,6 +364,6 @@ void jal(LOGIC_OP_ARGS) {
 void jalr(LOGIC_OP_ARGS) {
     if (codes.rd != 0)
         registers[codes.rd] = *program_count + 4;
-        
+
     *program_count = (registers[codes.rs1]) + codes.imm;
 }
