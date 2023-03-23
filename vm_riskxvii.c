@@ -1,443 +1,220 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <math.h>
 
-/* opcode hex values */
+#include "logic_ops.c"
+
+/* Key constants */
+
+#define REGISTER_COUNT 32
+#define MEMORY_SIZE 512
+
+/* Etc */
+
+#define ARGS uint32_t i, int * registers, int * program_count // this is template for binary parse
+#define ARGS2 struct data codes, int * registers, int * program_count // this is template for logic / mem ops
+#define ARGS3 *codes, registers, program_count // this gets sent to logic / mem ops
+
+/* Opcode hex values */
 
 #define TYPE_R 0x33
+
 #define TYPE_I 0x13
+#define TYPE_I_2 0x3
+#define TYPE_I_3 0x67
+
 #define TYPE_S 0x23
 #define TYPE_SB 0x63
 #define TYPE_U 0x37
 #define TYPE_UJ 0x6F
 
-#define REGISTER_NO 32
-
-/* Helper functions */
-
-int raise(int x, int power) {
-    int reval = 1;  
-    for (int i = 1; i <= power; i++)
-        reval *= x;
-
-    return reval;
+void printbits(int x)
+{
+    for(int i=sizeof(x)<<3; i; i--)
+        putchar('0'+((x>>(i-1))&1));
 }
-
-/* Parse opcode */
-
-    // if (opcode == TYPE_I) {
-    //     uint8_t byte4 = (i >> (8 * 3)) & 0xff;
-    //     printf("Type I: %i\n", byte4);
-    // }
-
-    // // get func3 
-    //     uint8_t f3_mask = 0x70;
-    //     uint8_t byte2 = (i >> (8 * 1)) & 0xff;
-    //     uint8_t opcode = f3_mask & byte2;
-
-    //     printf("Mask = %i\n", opcode);
-
-/* */
-
-
-
-/* Virtual routines */
-
-void console_write_char(int i) {
-    printf("%c\n", i);
-}
-
-void console_write_signed(int i) {}
-
-void console_write_unsigned(int i) {}
-
-void halt() {}
-
-void console_read_char() {}
-
-void console_read_signed() {}
-
-void dump() {}
-
-void dump_registers() {}
-
-void dump_mem() {}
-
-void heap_malloc() {}
-
-void heap_free() {}
-
 
 /* Error blocks */
 
-void func_3_failed() {
-    printf("Func3 unrecognised in context\n");
+void func3_fail(int func3) {
+    printf("Func3 %i - undefined behaviour.\n", func3);
     exit(1);
 }
 
-/* Parsing the instruction codes */
-
-uint32_t isolate_bits(uint32_t i, int start_index, int n) {
-    return (((1 << n) - 1) & (i >> start_index));
+void func7_fail() {
+    printf("Func7 - undefined behaviour.\n");
+    exit(1);
 }
 
-uint8_t get_opcode(uint32_t i) {
-    uint8_t byte_1 = i & 0xff;
-    uint8_t mask = 0x7F;
-
-    return mask & byte_1;
+void opcode_fail() {
+    printf("Opcode - undefined behaviour.\n");
+    exit(1);
 }
 
-uint8_t get_func3(uint32_t i) {
-    uint8_t func3_mask = 0x70;
-    uint8_t byte2 = (i >> (8 * 1)) & 0xff;
+void parse_file(char * filename, int * buffer) {
+    FILE * binaryfile;
 
-    return func3_mask & byte2;
+    binaryfile = fopen(filename, "rb");
+    if (binaryfile == NULL)
+        printf("Failed to read file: %s\n", filename);
+
+    fread(buffer, sizeof(int), MEMORY_SIZE, binaryfile);
+    fclose(binaryfile);
+
+    return;
 }
 
-uint8_t get_func7(uint32_t i) {
-    return isolate_bits(i, 25, 7);
-}
+/* Function pointer arrays */
 
-uint8_t get_rd(uint32_t i) {
-    // return (((1 << 5) - 1) & (i >> (7))); // how the fuck is this working
-    return isolate_bits(i, 7, 5);
-}
+// https://stackoverflow.com/questions/252748/how-can-i-use-an-array-of-function-pointers
 
-uint32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
+void (*TYPE_R_Pointer[8])(ARGS2) = {add, sll, slt, sltu, xor, srl, or, and};
 
-    switch (get_opcode(i)) {
-        
-        case TYPE_I:
-            return isolate_bits(i, 20, 12);
+void (*TYPE_I_Pointer[7])(ARGS2) = {addi, NULL, slti, sltiu, xori, ori, andi};
 
-        case TYPE_S:
-        {
-            uint16_t result = 0x0;
-            result = isolate_bits(i, 0, 4) | result;
-            result = isolate_bits(i, 25, 7) << 5 | result;
+void (*TYPE_I_Pointer2[5])(ARGS2) = {lb, lh, lw, lbu, lhu};
 
-            return result;
-        }
+void (*TYPE_S_Pointer[3])(ARGS2) = {sb, sh, sw};
 
-        case TYPE_SB:
-        {
-            uint16_t result = 0x0;
-            result = isolate_bits(i, 0, 1) << 11 | result;
-            result = isolate_bits(i, 1, 4) | result;
-            result = isolate_bits(i, 25, 5) << 5 | result;
-            result = isolate_bits(i, 31, 1) << 12 | result;
-        }
-            
-        case TYPE_U:
-            return isolate_bits(i, 12, 20);
+void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
 
-        case TYPE_UJ:
-        
-        {
-            uint32_t result = 0x0; // 21 digits!
+/* FUNCTION ROUTER */
+ 
+void parse_binary(ARGS) { 
+    struct data * codes;
+    update_data_struct(codes, i);
 
-            result = isolate_bits(i, 31, 1) << 20 | result;
-            result = isolate_bits(i, 21, 10) << 1 | result;
-            result = isolate_bits(i, 20, 1) << 11 | result;
-            result = isolate_bits(i, 12, 8) << 12 | result;
+    printf("Opcode = %x, RD = %i, imm = %i\n", codes->opcode, codes->rd, codes->imm);
 
-            return result;
-        }
+    switch(codes->opcode) {
 
-        default:
-            break;
-    }
-    
-    if (get_opcode(i) == TYPE_I) {
-        return isolate_bits(i, 20, 12);
-    } 
-} 
-
-uint8_t get_rs_1(uint32_t i) {
-    // return (((1 << 5) - 1) & (i >> (15)));
-    return isolate_bits(i, 15, 5);
-}
-
-uint8_t get_rs_2(uint32_t i) {}
-
-/* Handles virtual routines + storage*/
-
-void write_to_memory(int mem_address) {}
-
-int query_from_memory(int mem_address) {}
-
-
-/* Control flow for parsing binary, 32 bits per iteration */
-
-int parse_binary(uint32_t i, int * registers, int * p_counter) {
-
-    uint8_t opcode = get_opcode(i);
-
-    int rs_1 = get_rs_1(i);
-    int rs_2 = get_rs_2(i);
-
-    uint8_t func_3 = get_func3(i);
-    int func_7 = get_func7(i);
-
-    int rd = get_rd(i);
-    int imm = get_imm(i);
-
-    switch(opcode)
-    {   
         case TYPE_R:
         {
-            switch(func_7) {
-                case 0:
-                {
-
-                    if (func_3 == 0x0) {
-                        registers[rd] = registers[rs_1] + registers[rs_2];
-                    } 
-
-                    else if (func_3 == 0x4) {
-                        registers[rd] = registers[rs_1] ^ registers[rs_2];
-                    }
-
-                    else if (func_3 == 0x6) {
-                        registers[rd] = registers[rs_1] | registers[rs_2];
-                    }
-
-                    else if (func_3 == 0x7) {
-                        registers[rd] = registers[rs_1] & registers[rs_2];
-                    } 
-
-                    else if (func_3 == 0x1) {
-                        registers[rd] = registers[rs_1] << registers[rs_2];
-                    }
-
-                    else if (func_3 == 0x5) {
-                        registers[rd] = registers[rs_1] >> registers[rs_2];
-                    }
-
-                    else if (func_3 == 0x2) {
-                        registers[rd] = (registers[rs_1]  < registers[rs_2]) ? 1 : 0;
-                    }
-
-                    else if (func_3 == 0x3) { // no unsigned implementation
-                        registers[rd] = (registers[rs_1]  < registers[rs_2]) ? 1 : 0;
-                    }
-
-                    else {
-                        func_3_failed();
-                    }
-                }
-                break;
-
-                case 0x20:
-                {
-                    if (func_3 == 0x0) {
-                        registers[rd] = registers[rs_1] - registers[rs_2];
-                    }
-
-                    else if (func_3 == 0x5) {
-                        registers[rd] = registers[rs_1] >> registers[rs_2];
-                    }
-
-                    else 
-                        func_3_failed();
-
-                    break;
-                }
-
-                default:
-                {
-                    // func 7 failed
-                }
-            }
-            
-        }
-        case TYPE_I:   
-        {
-
-            if (rd == 0) {
-                // do nothing
-            }
-
-            if (func_3 == 0x0) { 
-                // ADDI - R[rd] = R[rs1] + imm
-                registers[rd] = registers[rs_1] + imm;
+            if (codes->func7 == 32) {
+                if (codes->func3 == 0) 
+                    sub(ARGS3);
+                else if (codes->func3 == 5) 
+                    sra(ARGS3);
+                else 
+                    func3_fail(codes->func3);
             } 
             
-            else if (func_3 == 0x4) {
-                // xori 0 RD = RS1 ^ imm
-                registers[rd] = raise(registers[rs_1], imm);
-            } 
-
-            else if (func_3 == 0x6) {
-                // ORI - rd = rs1 | imm
-                registers[rd] = registers[rs_1] | imm;
-            } 
-
-            else if (func_3 == 0x7) {
-                // ANDI - rd = rs1 & imm
-                registers[rd] = registers[rs_1] & imm;
-            } 
-
-            else if (func_3 == 0x2) {
-                // slti - RD = (RS1 < imm) ? 1 : 0
-
-                if (registers[rs_1] < imm)
-                    registers[rd] = 1;
+            else if (codes->func7 == 0) {
+                if (within_range(0, 7, codes->func3))
+                    (*TYPE_R_Pointer[codes->func3])(ARGS3);
                 else 
-                    registers[rd] = 0;
-            }
-
-            else if (func_3 == 0x3) {
-                // NO SIGNED / UNSIGNED IMPLEMNETATION YET
-                // sltiu - RD = (RS1 < imm) ? 1 : 0
-
-                if (registers[rs_1] < imm)
-                    registers[rd] = 1;
-                else 
-                    registers[rd] = 0;
-            }
-
-            else 
-                func_3_failed();
-        }
+                    func3_fail(codes->func3);
+            } else 
+                func7_fail();
+            
             break;
+        }
+
+        case TYPE_I:
+        {
+            if (within_range(0, 6, codes->func3) && codes->func3 != 1) {
+                (*TYPE_I_Pointer[codes->func3])(ARGS3);
+            } else {
+                func3_fail(codes->func3);
+            }
+
+            break;
+        }
+
+        case TYPE_I_2:
+        {
+            if (within_range(0, 4, codes->func3)) {
+                (*TYPE_I_Pointer2[codes->func3])(ARGS3);
+            } else {
+                func3_fail(codes->func3);
+            }
+
+            break;
+        }
+
+        case TYPE_I_3:
+        {
+            if (codes->func3 == 0x0)
+                jalr(ARGS3);
+            else
+                func3_fail(codes->func3);
+            
+            break;
+        }
 
         case TYPE_S:
-
-            if (func_3 == 0x0) {
-                // sb M[R[rs1] + imm] = R[rs2]
-            } 
-
-            else if (func_3 == 0x1) {} // sh
-
-            else if (func_3 == 0x2) {} // sw
-
-            else 
-                func_3_failed();
+        {
+            if (within_range(0, 2, codes->func3)) {
+                (*TYPE_S_Pointer[codes->func3])(ARGS3);
+            } else {
+                func3_fail(codes->func3);
+            }
 
             break;
+        }
 
-
-
-        
-        
         case TYPE_SB:
-
-            if (func_3 == 0x0) {  // BEQ
-                if (registers[rs_1] == registers[rs_2])
-                    p_counter += (imm << 1);
-            } 
-
-            else if (func_3 == 0x1) { //  BNE
-                if (registers[rs_1] != registers[rs_2])
-                    p_counter += (imm << 1);
-            } 
-
-            else if (func_3 == 0x4) {  // blt
-                if (registers[rs_1] < registers[rs_2])
-                    p_counter += (imm << 1);
+        {
+            if (within_range(0, 5, codes->func3)) {
+                (*TYPE_S_Pointer[codes->func3])(ARGS3);
+            } else {
+                func3_fail(codes->func3);
             }
 
-            else if (func_3 == 0x6) { // bltu - NEEDS UNSIGNED
-                if (registers[rs_1] < registers[rs_2])
-                    p_counter += (imm << 1);
-            } 
-
-            else if (func_3 == 0x5) { // bge
-                if (registers[rs_1] >= registers[rs_2])
-                    p_counter += (imm << 1);
-            } 
-
-            else if (func_3 == 0x7) { // NEEDS UNSIGNED
-                if (registers[rs_1] >= registers[rs_2])
-                    p_counter += (imm << 1);
-            }
-
-            else 
-                func_3_failed();
-            
             break;
-
-
+        }
 
         case TYPE_U:
         {
-            // lui
-        }
+            lui(ARGS3);
             break;
-        
+        }
+
         case TYPE_UJ:
         {
-            registers[rd] = *p_counter + 4;
-            p_counter = p_counter + (imm << 1);
-        }
+            jal(ARGS3);
             break;
+        }
 
         default:
+        {
+            opcode_fail();
             break;
+        }
     }
-
 }
 
 int main(int argc, char * argv[]) {
-
-    /* Setup registers */
-
-    int registers[REGISTER_NO];
+    int registers[REGISTER_COUNT];
     int program_counter;
+    int memory_image[MEMORY_SIZE];
 
-    for (int i = 0; i < REGISTER_NO; i++) {
+    for (int i = 0; i < REGISTER_COUNT; i++)
         registers[i] = 0;
+
+    for (int i = 0; i < MEMORY_SIZE; i++) {
+        memory_image[i] = 0;
     }
 
-    program_counter = 0;    
-
-
-    /* FILE IO*/
-    
-    FILE *myfile;
-    myfile = fopen(argv[1], "rb");
-    int32_t buffer[32];
-
-    for (int i = 0; i < 32; i++)
-        buffer[i] = 0;
-
-    if (myfile == NULL) {
-        printf("Error reading file\n");
-        exit(1);
-    }
-
-    fread(buffer, 1, 32, myfile);
-
-    fclose(myfile);
-
-    
-    // while (1) {
-    //     parse_binary(buffer[program_counter], registers, &program_counter);
+    program_counter = 0;
+ 
+    parse_file(argv[1], memory_image);
+    // for (int i = 0; i < 9; i++) {
+    //     parse_binary(memory_image[i], registers, &program_counter);
+    //     printf("PC = %i\n", program_counter);
     // }
 
-    for (int i = 0; i < 32; i++) {
+    
 
-        parse_binary(buffer[i], registers, &program_counter);
+    while (1) {
+        printf("PC = %i, ", program_counter);
+        parse_binary(memory_image[program_counter/4], registers, &program_counter);
 
-        int val = buffer[i];
-        int k;
-
-        for (int c = 31; c >= 0; c--) {
-            k = val >> c;
-            if (k & 1)
-                printf("1");
-            else  
-                printf("0");
-        }
-
-
-        printf(" = %d\n", buffer[i]);
+        // for (int i = 0; i < REGISTER_COUNT; i++) {
+        //     printf("R[%i] = %i\n", i, registers[i]);
+        // }
         
     }
 
     return 0;
 }
-

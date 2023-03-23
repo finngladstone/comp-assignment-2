@@ -50,10 +50,12 @@ uint8_t get_opcode(uint32_t i) {
 }
 
 uint8_t get_func3(uint32_t i) {
-    uint8_t func3_mask = 0x70;
-    uint8_t byte2 = (i >> (8 * 1)) & 0xff;
+    // uint8_t func3_mask = 0x70;
+    // uint8_t byte2 = (i >> (8 * 1)) & 0xff;
 
-    return func3_mask & byte2;
+    // return func3_mask & byte2;
+
+    return isolate_bits(i, 12, 3);
 }
 
 uint8_t get_func7(uint32_t i) {
