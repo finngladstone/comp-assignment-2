@@ -70,15 +70,34 @@ uint8_t get_rd(uint32_t i) {
 int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
 
     switch (get_opcode(i)) {
+
+        case TYPE_R:
+        {
+            return 0;
+        }
         
         case TYPE_I:
-            return isolate_bits(i, 20, 12);
-
+        {
+            uint32_t result = isolate_bits(i, 20, 12);
+            result = (int32_t) (result << 20) >> 20;
+            
+            return result;
+        }
         case TYPE_I_2:
-            return isolate_bits(i, 20, 12);
+        {
+            uint32_t result = isolate_bits(i, 20, 12);
+            result = (int32_t) (result << 20) >> 20;
+            
+            return result;
+        }
 
         case TYPE_I_3:
-            return isolate_bits(i, 20, 12);
+        {
+            uint32_t result = isolate_bits(i, 20, 12);
+            result = (int32_t) (result << 20) >> 20;
+            
+            return result;
+        }
 
         case TYPE_S:
         {
@@ -86,39 +105,53 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             result = isolate_bits(i, 7, 5) | result;
             result = isolate_bits(i, 25, 7) << 5 | result;
 
-            result = (int32_t)(result << 20) >> 20;
+            result = (int32_t) (result << 20) >> 20;
 
             return result;
         }
 
         case TYPE_SB:
         {
-            int16_t result = 0x0;
+            uint32_t result = 0x0;
             result = isolate_bits(i, 0, 1) << 11 | result;
             result = isolate_bits(i, 1, 4) | result;
             result = isolate_bits(i, 25, 5) << 5 | result;
             result = isolate_bits(i, 31, 1) << 12 | result;
+
+            result = (int32_t) (result << 19) >> 19;
+            return result;
         }
             
         case TYPE_U:
-            return (uint32_t) isolate_bits(i, 12, 20);
+        {
+            uint32_t result = isolate_bits(i, 12, 20);
+            // result = result << 12;
+            result = (int32_t) (result << 20) >> 20;
+
+            // int32_t result = isolate_bits(i, 12, 20);
+            // result = result << 11;
+            
+            return result;
+        }
 
         case TYPE_UJ:
         
         {
-            int32_t result = 0x0; // 21 digits!
+            uint32_t result = 0x0; // 21 digits!
 
             result = isolate_bits(i, 31, 1) << 20 | result;
             result = isolate_bits(i, 21, 10) << 1 | result;
             result = isolate_bits(i, 20, 1) << 11 | result;
             result = isolate_bits(i, 12, 8) << 12 | result;
 
+            result = (int32_t) (result << 11) >> 11;
+
             return result;
         }
 
         default:
             printf("Failed to parse imm\n");
-            break;;
+            exit(1);
     }
 } 
 

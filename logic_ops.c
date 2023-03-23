@@ -38,7 +38,11 @@ int console_read_char() {
 }
 
 int console_read_signed_int() {
-    //
+    int c;
+
+    scanf("%d", &c);
+
+    return c;
 }
 
 void dump_pc(int pc) {
@@ -127,7 +131,7 @@ int read_from_memory(int address) {
         default:
         {
             memory_address_invalid(address);
-            break;
+            exit(1);
         }
     }
 }

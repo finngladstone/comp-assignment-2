@@ -81,10 +81,11 @@ void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
 /* FUNCTION ROUTER */
  
 void parse_binary(ARGS) { 
-    struct data * codes;
+    struct data * codes = { 0 };
     update_data_struct(codes, i);
 
-    printf("Opcode = %x, RD = %i, imm = %i\n", codes->opcode, codes->rd, codes->imm);
+    // printf("Opcode = %x, RD = %i, rs1 = %i, rs2 = %i, imm = %i\n", 
+    //     codes->opcode, codes->rd, codes->rs1, codes->rs2, codes->imm);
 
     switch(codes->opcode) {
 
@@ -207,7 +208,7 @@ int main(int argc, char * argv[]) {
     
 
     while (1) {
-        printf("PC = %i, ", program_counter);
+        // printf("PC = %i, ", program_counter);
         parse_binary(memory_image[program_counter/4], registers, &program_counter);
 
         // for (int i = 0; i < REGISTER_COUNT; i++) {
