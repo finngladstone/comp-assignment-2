@@ -13,7 +13,7 @@
 
 #define ARGS uint32_t i, int * registers, int * program_count // this is template for binary parse
 #define ARGS2 struct data codes, int * registers, int * program_count // this is template for logic / mem ops
-#define ARGS3 *codes, registers, program_count // this gets sent to logic / mem ops
+#define ARGS3 codes, registers, program_count // this gets sent to logic / mem ops
 
 /* Opcode hex values */
 
@@ -81,30 +81,30 @@ void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
 /* FUNCTION ROUTER */
  
 void parse_binary(ARGS) { 
-    struct data * codes = { 0 };
-    update_data_struct(codes, i);
+    struct data codes = { 0 };
+    update_data_struct(&codes, i);
 
     // printf("Opcode = %x, RD = %i, rs1 = %i, rs2 = %i, imm = %i\n", 
     //     codes->opcode, codes->rd, codes->rs1, codes->rs2, codes->imm);
 
-    switch(codes->opcode) {
+    switch(codes.opcode) {
 
         case TYPE_R:
         {
-            if (codes->func7 == 32) {
-                if (codes->func3 == 0) 
+            if (codes.func7 == 32) {
+                if (codes.func3 == 0) 
                     sub(ARGS3);
-                else if (codes->func3 == 5) 
+                else if (codes.func3 == 5) 
                     sra(ARGS3);
                 else 
-                    func3_fail(codes->func3);
+                    func3_fail(codes.func3);
             } 
             
-            else if (codes->func7 == 0) {
-                if (within_range(0, 7, codes->func3))
-                    (*TYPE_R_Pointer[codes->func3])(ARGS3);
+            else if (codes.func7 == 0) {
+                if (within_range(0, 7, codes.func3))
+                    (*TYPE_R_Pointer[codes.func3])(ARGS3);
                 else 
-                    func3_fail(codes->func3);
+                    func3_fail(codes.func3);
             } else 
                 func7_fail();
             
@@ -113,10 +113,10 @@ void parse_binary(ARGS) {
 
         case TYPE_I:
         {
-            if (within_range(0, 6, codes->func3) && codes->func3 != 1) {
-                (*TYPE_I_Pointer[codes->func3])(ARGS3);
+            if (within_range(0, 6, codes.func3) && codes.func3 != 1) {
+                (*TYPE_I_Pointer[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes->func3);
+                func3_fail(codes.func3);
             }
 
             break;
@@ -124,10 +124,10 @@ void parse_binary(ARGS) {
 
         case TYPE_I_2:
         {
-            if (within_range(0, 4, codes->func3)) {
-                (*TYPE_I_Pointer2[codes->func3])(ARGS3);
+            if (within_range(0, 4, codes.func3)) {
+                (*TYPE_I_Pointer2[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes->func3);
+                func3_fail(codes.func3);
             }
 
             break;
@@ -135,20 +135,20 @@ void parse_binary(ARGS) {
 
         case TYPE_I_3:
         {
-            if (codes->func3 == 0x0)
+            if (codes.func3 == 0x0)
                 jalr(ARGS3);
             else
-                func3_fail(codes->func3);
+                func3_fail(codes.func3);
             
             break;
         }
 
         case TYPE_S:
         {
-            if (within_range(0, 2, codes->func3)) {
-                (*TYPE_S_Pointer[codes->func3])(ARGS3);
+            if (within_range(0, 2, codes.func3)) {
+                (*TYPE_S_Pointer[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes->func3);
+                func3_fail(codes.func3);
             }
 
             break;
@@ -156,10 +156,10 @@ void parse_binary(ARGS) {
 
         case TYPE_SB:
         {
-            if (within_range(0, 5, codes->func3)) {
-                (*TYPE_S_Pointer[codes->func3])(ARGS3);
+            if (within_range(0, 5, codes.func3)) {
+                (*TYPE_S_Pointer[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes->func3);
+                func3_fail(codes.func3);
             }
 
             break;
