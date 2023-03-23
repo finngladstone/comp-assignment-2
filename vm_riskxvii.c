@@ -72,7 +72,7 @@ void (*TYPE_R_Pointer[8])(ARGS2) = {add, sll, slt, sltu, xor, srl, or, and};
 
 void (*TYPE_I_Pointer[7])(ARGS2) = {addi, NULL, slti, sltiu, xori, ori, andi};
 
-void (*TYPE_I_Pointer2[5])(ARGS2) = {lb, lh, lw, lbu, lhu};
+void (*TYPE_I_Pointer2[6])(ARGS2) = {lb, lh, lw, NULL, lbu, lhu};
 
 void (*TYPE_S_Pointer[3])(ARGS2) = {sb, sh, sw};
 
@@ -126,7 +126,7 @@ void parse_binary(ARGS) {
 
         case TYPE_I_2:
         {
-            if (within_range(0, 4, codes.func3)) {
+            if (within_range(0, 5, codes.func3) && codes.func3 != 3) {
                 (*TYPE_I_Pointer2[codes.func3])(ARGS3);
             } else {
                 func3_fail(codes.func3);
@@ -203,12 +203,14 @@ int main(int argc, char * argv[]) {
  
     parse_file(argv[1], memory_image);
 
-    
-
     while (1) {
-        // printf("PC = %i, ", program_counter);
+
+        // for (int i = 0; i < 32; i++) {
+        //     printf("R[%i] = %i\n", i, registers[i]);
+        // }
+
+        printf("PC = %i, ", program_counter);
         parse_binary(memory_image[program_counter/4], registers, &program_counter, memory_image);
-        
     }
 
     return 0;

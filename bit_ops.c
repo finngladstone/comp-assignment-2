@@ -112,14 +112,24 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
 
         case TYPE_SB:
         {
+            // uint32_t result = 0x0;
+            // result = isolate_bits(i, 0, 1) << 11 | result;
+            // result = isolate_bits(i, 1, 4) | result;
+            // result = isolate_bits(i, 25, 5) << 5 | result;
+            // result = isolate_bits(i, 31, 1) << 12 | result;
+
+            // result = (int32_t) (result << 19) >> 19;
+            // return result;
+
             uint32_t result = 0x0;
-            result = isolate_bits(i, 0, 1) << 11 | result;
-            result = isolate_bits(i, 1, 4) | result;
-            result = isolate_bits(i, 25, 5) << 5 | result;
+            result = isolate_bits(i, 7, 1) << 11 | result;
+            result = isolate_bits(i, 8, 4) << 1 | result;
+            result = isolate_bits(i, 25, 6) << 5 | result;
             result = isolate_bits(i, 31, 1) << 12 | result;
 
             result = (int32_t) (result << 19) >> 19;
             return result;
+
         }
             
         case TYPE_U: // good

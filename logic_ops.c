@@ -110,8 +110,8 @@ void write_to_memory(int address, int value, int program_counter, int * register
 
         default:
         {
-            if (within_range(1024, 2047, address)) {
-                ram[address] = value;
+            if (within_range(0, 2047, address)) {
+                ram[address/4] = value;
             } else {
                 memory_address_invalid(address);
             }
@@ -135,8 +135,8 @@ int read_from_memory(int address, int * ram) {
 
         default:
         {
-            if (within_range(1024, 2047, address)) {
-                return ram[address];
+            if (within_range(0, 2047, address)) {
+                return ram[address/4];
             } else {
                 memory_address_invalid(address);
             }
@@ -264,10 +264,11 @@ void lw(LOGIC_OP_ARGS) {
 }
 
 void lbu(LOGIC_OP_ARGS) {
+
     int mem_address = registers[codes.rs1] + codes.imm; 
 
     if (codes.rd != 0)
-        registers[codes.rd] = (int8_t) read_from_memory(mem_address, ram);
+        registers[codes.rd] = (uint8_t) read_from_memory(mem_address, ram);
 
     *program_count += 4;
 }
@@ -339,9 +340,11 @@ void sltiu(LOGIC_OP_ARGS) { // unsigned
 }
 
 void beq(LOGIC_OP_ARGS) {
+
+    printf("Yes\n");
     
     if (registers[codes.rs1] == registers[codes.rs2])
-        *program_count += (codes.imm << 1);
+        *program_count += codes.imm;
 }
 
 void bne(LOGIC_OP_ARGS) {
