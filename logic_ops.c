@@ -11,7 +11,7 @@ void memory_address_invalid(int address) {
 
 /* Default arguments*/
 
-#define LOGIC_OP_ARGS struct data codes, int * registers, int * program_count
+#define LOGIC_OP_ARGS struct data codes, int * registers, int * program_count, int * ram
 
 /* Virtual routines */
 
@@ -64,7 +64,7 @@ void dump_memory_word(int value) {
 
 /* Function routers for memory-based virtual routines */
 
-void write_to_memory(int address, int value, int program_counter, int * registers) {
+void write_to_memory(int address, int value, int program_counter, int * registers, int * ram) {
     switch (address) {
         case 0x0800:
         {
@@ -110,13 +110,18 @@ void write_to_memory(int address, int value, int program_counter, int * register
 
         default:
         {
-            memory_address_invalid(address);
+            if (within_range(1024, 2047, address)) {
+                ram[address] = value;
+            } else {
+                memory_address_invalid(address);
+            }
+
             break;
         }
     }
 }
 
-int read_from_memory(int address) {
+int read_from_memory(int address, int * ram) {
     switch(address) {
         case 0x0812:
         {
@@ -130,7 +135,12 @@ int read_from_memory(int address) {
 
         default:
         {
-            memory_address_invalid(address);
+            if (within_range(1024, 2047, address)) {
+                return ram[address];
+            } else {
+                memory_address_invalid(address);
+            }
+            
             exit(1);
         }
     }
@@ -248,7 +258,7 @@ void lw(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     
     if (codes.rd != 0)
-        registers[codes.rd] = (int32_t) read_from_memory(mem_address);
+        registers[codes.rd] = (int32_t) read_from_memory(mem_address, ram);
 
     *program_count += 4;
 }
@@ -257,7 +267,7 @@ void lbu(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
 
     if (codes.rd != 0)
-        registers[codes.rd] = (int8_t) read_from_memory(mem_address);
+        registers[codes.rd] = (int8_t) read_from_memory(mem_address, ram);
 
     *program_count += 4;
 }
@@ -266,7 +276,7 @@ void lhu(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
 
     if (codes.rd != 0)
-        registers[codes.rd] = (int16_t) read_from_memory(mem_address);
+        registers[codes.rd] = (int16_t) read_from_memory(mem_address, ram);
 
     *program_count += 4;
 }
@@ -275,7 +285,7 @@ void sb(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, (int8_t) value, * program_count, registers);
+    write_to_memory(mem_address, (int8_t) value, * program_count, registers, ram);
 
     *program_count += 4;
 }
@@ -284,7 +294,7 @@ void sh(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, (int16_t) value, * program_count, registers);
+    write_to_memory(mem_address, (int16_t) value, * program_count, registers, ram);
 
     *program_count += 4;
 }
@@ -293,7 +303,7 @@ void sw(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, (int32_t) value, * program_count, registers);
+    write_to_memory(mem_address, (int32_t) value, * program_count, registers, ram);
 
     *program_count += 4;
 }
@@ -362,7 +372,7 @@ void jal(LOGIC_OP_ARGS) {
     if (codes.rd != 0)
         registers[codes.rd] = *program_count + 4;
     
-    *program_count += (codes.imm);
+    *program_count += codes.imm;
 }
 
 void jalr(LOGIC_OP_ARGS) {

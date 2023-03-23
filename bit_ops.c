@@ -76,7 +76,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             return 0;
         }
         
-        case TYPE_I:
+        case TYPE_I: // good
         {
             uint32_t result = isolate_bits(i, 20, 12);
             result = (int32_t) (result << 20) >> 20;
@@ -91,7 +91,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             return result;
         }
 
-        case TYPE_I_3:
+        case TYPE_I_3: // good
         {
             uint32_t result = isolate_bits(i, 20, 12);
             result = (int32_t) (result << 20) >> 20;
@@ -99,7 +99,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             return result;
         }
 
-        case TYPE_S:
+        case TYPE_S: // good
         {
             uint32_t result = 0x0;
             result = isolate_bits(i, 7, 5) | result;
@@ -122,7 +122,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             return result;
         }
             
-        case TYPE_U:
+        case TYPE_U: // good
         {
             uint32_t result = isolate_bits(i, 12, 20);
             // result = result << 12;
@@ -134,7 +134,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             return result;
         }
 
-        case TYPE_UJ:
+        case TYPE_UJ: // good
         
         {
             uint32_t result = 0x0; // 21 digits!

@@ -11,9 +11,9 @@
 
 /* Etc */
 
-#define ARGS uint32_t i, int * registers, int * program_count // this is template for binary parse
-#define ARGS2 struct data codes, int * registers, int * program_count // this is template for logic / mem ops
-#define ARGS3 codes, registers, program_count // this gets sent to logic / mem ops
+#define ARGS uint32_t i, int * registers, int * program_count, int * ram // this is template for binary parse
+#define ARGS2 struct data codes, int * registers, int * program_count, int * ram // this is template for logic / mem ops
+#define ARGS3 codes, registers, program_count, ram // this gets sent to logic / mem ops
 
 /* Opcode hex values */
 
@@ -81,11 +81,13 @@ void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
 /* FUNCTION ROUTER */
  
 void parse_binary(ARGS) { 
+    // printf("%i\n", i);
+
     struct data codes = { 0 };
     update_data_struct(&codes, i);
 
-    // printf("Opcode = %x, RD = %i, rs1 = %i, rs2 = %i, imm = %i\n", 
-    //     codes->opcode, codes->rd, codes->rs1, codes->rs2, codes->imm);
+    // printf("Opcode = %x, func3 = %i, func7 = %i, RD = %i, rs1 = %i, rs2 = %i, imm = %i\n", 
+    //     codes.opcode, codes.func3, codes.func7, codes.rd, codes.rs1, codes.rs2, codes.imm);
 
     switch(codes.opcode) {
 
@@ -111,7 +113,7 @@ void parse_binary(ARGS) {
             break;
         }
 
-        case TYPE_I:
+        case TYPE_I:    
         {
             if (within_range(0, 6, codes.func3) && codes.func3 != 1) {
                 (*TYPE_I_Pointer[codes.func3])(ARGS3);
@@ -200,20 +202,12 @@ int main(int argc, char * argv[]) {
     program_counter = 0;
  
     parse_file(argv[1], memory_image);
-    // for (int i = 0; i < 9; i++) {
-    //     parse_binary(memory_image[i], registers, &program_counter);
-    //     printf("PC = %i\n", program_counter);
-    // }
 
     
 
     while (1) {
         // printf("PC = %i, ", program_counter);
-        parse_binary(memory_image[program_counter/4], registers, &program_counter);
-
-        // for (int i = 0; i < REGISTER_COUNT; i++) {
-        //     printf("R[%i] = %i\n", i, registers[i]);
-        // }
+        parse_binary(memory_image[program_counter/4], registers, &program_counter, memory_image);
         
     }
 
