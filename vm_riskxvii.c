@@ -7,12 +7,13 @@
 /* Key constants */
 
 #define REGISTER_COUNT 32
-#define MEMORY_SIZE 512
+#define INSTRUCTION_SIZE 256
+#define MEMORY_BYTE_ARR_SIZE 2048
 
 /* Etc */
 
-#define ARGS uint32_t i, int * registers, int * program_count, int * ram // this is template for binary parse
-#define ARGS2 struct data codes, int * registers, int * program_count, int * ram // this is template for logic / mem ops
+#define ARGS uint32_t i, int * registers, int * program_count, unsigned char * ram // this is template for binary parse
+#define ARGS2 struct data codes, int * registers, int * program_count, unsigned char * ram // this is template for logic / mem ops
 #define ARGS3 codes, registers, program_count, ram // this gets sent to logic / mem ops
 
 /* Opcode hex values */
@@ -51,19 +52,34 @@ void opcode_fail() {
     exit(1);
 }
 
-void parse_file(char * filename, int * buffer) {
+void parse_file(char * filename, int * buffer, int size) {
     FILE * binaryfile;
 
     binaryfile = fopen(filename, "rb");
     if (binaryfile == NULL)
         printf("Failed to read file: %s\n", filename);
 
-    if (fread(buffer, sizeof(int), MEMORY_SIZE, binaryfile)) {}
+    if (fread(buffer, sizeof(buffer[0]), size, binaryfile)) {}
 
     fclose(binaryfile);
 
     return;
 }
+
+void parse_file_single_byte(char * filename, unsigned char * buffer, int size) {
+    FILE * binaryfile;
+
+    binaryfile = fopen(filename, "rb");
+    if (binaryfile == NULL)
+        printf("Failed to read file: %s\n", filename);
+
+    if (fread(buffer, sizeof(buffer[0]), size, binaryfile)) {}
+
+    fclose(binaryfile);
+
+    return;
+}
+
 
 /* Function pointer arrays */
 
@@ -190,32 +206,36 @@ void parse_binary(ARGS) {
 }
 
 int main(int argc, char * argv[]) {
-    int registers[REGISTER_COUNT];
-    int program_counter;
-    int memory_image[MEMORY_SIZE];
-
-    for (int i = 0; i < REGISTER_COUNT; i++)
-        registers[i] = 0;
-
-    for (int i = 0; i < MEMORY_SIZE; i++) {
-        memory_image[i] = 0;
-    }
+    int registers[REGISTER_COUNT] = { 0 };
+    int program_counter = 0;
+    
+    // VM instructions
+    int instruction_arr[INSTRUCTION_SIZE] = { 0 };
+    
+    // byte array of input of first 2048b from .mi file
+    unsigned char memory_byte_arr[MEMORY_BYTE_ARR_SIZE] = { 0 }; 
 
     program_counter = 0;
  
-    parse_file(argv[1], memory_image);
+    parse_file(argv[1], instruction_arr, INSTRUCTION_SIZE);
+    parse_file_single_byte(argv[1], memory_byte_arr, MEMORY_BYTE_ARR_SIZE);
 
     while (1) {
-
-        // for (int i = 0; i < 32; i++) {
-        //     printf("R[%i] = %i\n", i, registers[i]);
-        // }
-
-        // printf("PC = %i, ", program_counter);
-        parse_binary(memory_image[program_counter/4], registers, &program_counter, memory_image);
-        // printf("Press ENTER key to Continue\n");  
-        // getchar(); 
+        parse_binary(instruction_arr[program_counter/4], registers, &program_counter, memory_byte_arr);
     }
 
     return 0;
 }
+
+/* Testing code */
+
+// printf("Press ENTER key to Continue\n");  
+        // getchar();
+
+ // for (int i = 0; i < 32; i++) {
+        //     printf("R[%i] = %i\n", i, registers[i]);
+        // }
+
+    // printf("PC = %i, ", program_counter);
+
+        

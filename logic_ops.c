@@ -11,7 +11,7 @@ void memory_address_invalid(int address) {
 
 /* Default arguments*/
 
-#define LOGIC_OP_ARGS struct data codes, int * registers, int * program_count, int * ram
+#define LOGIC_OP_ARGS struct data codes, int * registers, int * program_count, uint8_t * ram
 
 /* Virtual routines */
 
@@ -64,7 +64,7 @@ void dump_memory_word(int value) {
 
 /* Function routers for memory-based virtual routines */
 
-void write_to_memory(int address, int value, int program_counter, int * registers, int * ram) {
+void write_to_memory(int address, int value, int program_counter, int * registers, unsigned char * ram, int bytes) {
     switch (address) {
         case 0x0800:
         {
@@ -111,7 +111,17 @@ void write_to_memory(int address, int value, int program_counter, int * register
         default:
         {
             if (within_range(1025, 2047, address)) {
-                ram[address/4] = value;
+
+                int j = (bytes - 1) * 8;
+                for (int i = address + bytes - 1; i >= address; i--) {
+                    
+                    int byte = (uint8_t) isolate_bits(value, j, 8);
+                    ram[i] = byte;
+
+                    j-=8;
+                }
+
+                
             } else {
                 memory_address_invalid(address);
             }
@@ -121,7 +131,7 @@ void write_to_memory(int address, int value, int program_counter, int * register
     }
 }
 
-int read_from_memory(int address, int * ram) {
+int read_from_memory(int address, uint8_t * ram, int bytes) {
     switch(address) {
         case 0x0812:
         {
@@ -136,12 +146,22 @@ int read_from_memory(int address, int * ram) {
         default:
         {
             if (within_range(0, 2047, address)) {
-                return ram[address/4];
+                int reval = 0;
+                int shift = 0;
+                
+                for (int i = address + bytes - 1; i >= address; i--) {
+                    reval = (reval | ram[i] << shift);
+                    shift+=8;
+                }
+
+                return reval;
+
+                
             } else {
                 memory_address_invalid(address);
             }
             
-            exit(1);
+            break;
         }
     }
 }
@@ -260,7 +280,7 @@ void sra(LOGIC_OP_ARGS) {
 void lb(LOGIC_OP_ARGS) {
     int mem_address = codes.rs1 + codes.imm;
     
-    uint8_t value = (uint8_t) read_from_memory(mem_address, ram);
+    uint8_t value = (uint8_t) read_from_memory(mem_address, ram, 1);
     value = (int8_t) ((value << 24) >> 24);
 
     if (codes.rd != 0)
@@ -272,7 +292,7 @@ void lb(LOGIC_OP_ARGS) {
 void lh(LOGIC_OP_ARGS) {
     int mem_address = codes.rs1 + codes.imm;
     
-    uint16_t value = (uint16_t) read_from_memory(mem_address, ram);
+    uint16_t value = (uint16_t) read_from_memory(mem_address, ram, 2);
     value = (int16_t) ((value << 16) >> 16);
 
     if (codes.rd != 0)
@@ -285,7 +305,7 @@ void lw(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     
     if (codes.rd != 0)
-        registers[codes.rd] = (int32_t) read_from_memory(mem_address, ram);
+        registers[codes.rd] = (int32_t) read_from_memory(mem_address, ram, 4);
 
     *program_count += 4;
 }
@@ -295,7 +315,7 @@ void lbu(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
 
     if (codes.rd != 0)
-        registers[codes.rd] = (uint8_t) read_from_memory(mem_address, ram);
+        registers[codes.rd] = (uint8_t) read_from_memory(mem_address, ram, 1);
 
     *program_count += 4;
 }
@@ -304,7 +324,7 @@ void lhu(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
 
     if (codes.rd != 0)
-        registers[codes.rd] = (uint16_t) read_from_memory(mem_address, ram);
+        registers[codes.rd] = (uint16_t) read_from_memory(mem_address, ram, 2);
 
     *program_count += 4;
 }
@@ -313,7 +333,7 @@ void sb(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, value, * program_count, registers, ram);
+    write_to_memory(mem_address, value, * program_count, registers, ram, 1);
 
     *program_count += 4;
 }
@@ -322,7 +342,7 @@ void sh(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, value, * program_count, registers, ram);
+    write_to_memory(mem_address, value, * program_count, registers, ram, 2);
 
     *program_count += 4;
 }
@@ -331,7 +351,7 @@ void sw(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, value, * program_count, registers, ram);
+    write_to_memory(mem_address, value, * program_count, registers, ram, 4);
 
     *program_count += 4;
 }
