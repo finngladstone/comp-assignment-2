@@ -104,13 +104,13 @@ void write_to_memory(int address, int value, int program_counter, int * register
 
         case 0x0828:
         {
-            dump_memory_word(value);
+            dump_memory_word(value); // fucked
             break;
         }
 
         default:
         {
-            if (within_range(0, 2047, address)) {
+            if (within_range(1025, 2047, address)) {
                 ram[address/4] = value;
             } else {
                 memory_address_invalid(address);
@@ -225,21 +225,32 @@ void andi(LOGIC_OP_ARGS) {
 
 void sll(LOGIC_OP_ARGS) {
     if (codes.rd != 0)
-        registers[codes.rd] = registers[codes.rs1] << registers[codes.rs2];
+        registers[codes.rd] = (registers[codes.rs1] << registers[codes.rs2]);
 
     *program_count += 4;
 }
 
 void srl(LOGIC_OP_ARGS) {
     if (codes.rd != 0)
-        registers[codes.rd] = registers[codes.rs1] >> registers[codes.rs2];
+        registers[codes.rd] = (registers[codes.rs1] >> registers[codes.rs2]);
 
     *program_count += 4;
 }
 
 void sra(LOGIC_OP_ARGS) {
+
+    uint32_t val = 0x0;
+    int victim = registers[codes.rs1];
+    int shift = registers[codes.rs2];
+
+    if (shift > 31)
+        shift = 31;
+
+    val = isolate_bits(victim, shift, 31 - shift) | val;
+    val = isolate_bits(victim, 0, shift) << shift | val;
+
     if (codes.rd != 0)
-        registers[codes.rd] = registers[codes.rs1] >> registers[codes.rs2];
+        registers[codes.rd] = (int32_t) val;
 
     *program_count += 4;
 }
@@ -247,11 +258,27 @@ void sra(LOGIC_OP_ARGS) {
 /* Memory access operations */
 
 void lb(LOGIC_OP_ARGS) {
-    // sign extend
+    int mem_address = codes.rs1 + codes.imm;
+    
+    uint8_t value = (uint8_t) read_from_memory(mem_address, ram);
+    value = (int8_t) ((value << 24) >> 24);
+
+    if (codes.rd != 0)
+        registers[codes.rd] = value;
+
+    *program_count += 4;
 }
 
 void lh(LOGIC_OP_ARGS) {
-    // sign extend
+    int mem_address = codes.rs1 + codes.imm;
+    
+    uint16_t value = (uint16_t) read_from_memory(mem_address, ram);
+    value = (int16_t) ((value << 16) >> 16);
+
+    if (codes.rd != 0)
+        registers[codes.rd] = value;
+    
+    *program_count += 4;
 }
 
 void lw(LOGIC_OP_ARGS) {
@@ -277,7 +304,7 @@ void lhu(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
 
     if (codes.rd != 0)
-        registers[codes.rd] = (int16_t) read_from_memory(mem_address, ram);
+        registers[codes.rd] = (uint16_t) read_from_memory(mem_address, ram);
 
     *program_count += 4;
 }
@@ -286,7 +313,7 @@ void sb(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, (int8_t) value, * program_count, registers, ram);
+    write_to_memory(mem_address, value, * program_count, registers, ram);
 
     *program_count += 4;
 }
@@ -295,7 +322,7 @@ void sh(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, (int16_t) value, * program_count, registers, ram);
+    write_to_memory(mem_address, value, * program_count, registers, ram);
 
     *program_count += 4;
 }
@@ -304,7 +331,7 @@ void sw(LOGIC_OP_ARGS) {
     int mem_address = registers[codes.rs1] + codes.imm; 
     int value = registers[codes.rs2];
     
-    write_to_memory(mem_address, (int32_t) value, * program_count, registers, ram);
+    write_to_memory(mem_address, value, * program_count, registers, ram);
 
     *program_count += 4;
 }
@@ -327,49 +354,71 @@ void slti(LOGIC_OP_ARGS) {
 
 void sltu(LOGIC_OP_ARGS) { // unsigned
     if (codes.rd != 0)
-        registers[codes.rd] = (registers[codes.rs1] < registers[codes.rs2]) ? 1 : 0;
+        registers[codes.rd] = ((uint32_t) registers[codes.rs1] < (uint32_t) registers[codes.rs2]) ? 1 : 0;
 
     *program_count += 4;
 }
 
 void sltiu(LOGIC_OP_ARGS) { // unsigned
     if (codes.rd != 0)
-        registers[codes.rd] = (registers[codes.rs1] < codes.imm) ? 1 : 0;
+        registers[codes.rd] = ((uint32_t) registers[codes.rs1] < (uint32_t) codes.imm) ? 1 : 0;
 
     *program_count += 4;
 }
 
 void beq(LOGIC_OP_ARGS) {
-
-    printf("Yes\n");
     
     if (registers[codes.rs1] == registers[codes.rs2])
         *program_count += codes.imm;
+    else
+        *program_count += 4;
 }
 
 void bne(LOGIC_OP_ARGS) {
     
     if (registers[codes.rs1] != registers[codes.rs2])
-        *program_count += (codes.imm << 1);
+        *program_count += codes.imm;
+    else 
+        *program_count += 4;
 }
 
 void blt(LOGIC_OP_ARGS) {
     
     if (registers[codes.rs1] < registers[codes.rs2])
-        *program_count += (codes.imm << 1);
+        *program_count += codes.imm;
+    else 
+        *program_count += 4;
 }
 
 void bltu(LOGIC_OP_ARGS) { // unsigned
-    
+    uint32_t rs1_u = (uint32_t) registers[codes.rs1];
+    uint32_t rs2_u = (uint32_t) registers[codes.rs2];
+
+    if (rs1_u < rs2_u) {
+        *program_count += (uint32_t) codes.imm;
+    } else 
+        *program_count += 4;
 }
 
 void bge(LOGIC_OP_ARGS) {
     
     if (registers[codes.rs1] >= registers[codes.rs2])
-        *program_count += (codes.imm << 1);
+        *program_count += codes.imm;
+    else 
+        *program_count += 4;
 }
 
-void bgeu(LOGIC_OP_ARGS) {} // unsigned
+void bgeu(LOGIC_OP_ARGS) { // unsigned
+    uint32_t rs1_u = (uint32_t) registers[codes.rs1];
+    uint32_t rs2_u = (uint32_t) registers[codes.rs2];
+
+    if (rs1_u >= rs2_u) {
+        *program_count += codes.imm;
+    } else
+        *program_count += 4;
+
+
+}
 
 void jal(LOGIC_OP_ARGS) {
     if (codes.rd != 0)

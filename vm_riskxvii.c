@@ -76,7 +76,7 @@ void (*TYPE_I_Pointer2[6])(ARGS2) = {lb, lh, lw, NULL, lbu, lhu};
 
 void (*TYPE_S_Pointer[3])(ARGS2) = {sb, sh, sw};
 
-void (*TYPE_SB_Pointer[6])(ARGS2) = {beq, bne, blt, bltu, bge, bgeu};
+void (*TYPE_SB_Pointer[8])(ARGS2) = {beq, bne, NULL, NULL, blt, bge, bltu, bgeu};
 
 /* FUNCTION ROUTER */
  
@@ -158,8 +158,9 @@ void parse_binary(ARGS) {
 
         case TYPE_SB:
         {
-            if (within_range(0, 5, codes.func3)) {
-                (*TYPE_S_Pointer[codes.func3])(ARGS3);
+            
+            if (within_range(0, 1, codes.func3) || within_range(4, 7, codes.func3)) {
+                (*TYPE_SB_Pointer[codes.func3])(ARGS3);
             } else {
                 func3_fail(codes.func3);
             }
@@ -209,8 +210,10 @@ int main(int argc, char * argv[]) {
         //     printf("R[%i] = %i\n", i, registers[i]);
         // }
 
-        printf("PC = %i, ", program_counter);
+        // printf("PC = %i, ", program_counter);
         parse_binary(memory_image[program_counter/4], registers, &program_counter, memory_image);
+        // printf("Press ENTER key to Continue\n");  
+        // getchar(); 
     }
 
     return 0;

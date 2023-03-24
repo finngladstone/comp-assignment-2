@@ -207,3 +207,7 @@ int within_range(int lower, int upper, int val) {
         return 1;
     return 0;
 }
+
+// int32_t sign_extend(uint32_t i, int n) {
+
+// }
