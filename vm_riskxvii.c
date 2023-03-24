@@ -99,7 +99,6 @@ void (*TYPE_SB_Pointer[8])(ARGS2) = {beq, bne, NULL, NULL, blt, bge, bltu, bgeu}
  
 void parse_binary(ARGS) { 
     // printf("%i\n", i);
-
     struct data codes = { 0 };
     update_data_struct(&codes, i);
 
@@ -221,7 +220,9 @@ int main(int argc, char * argv[]) {
     parse_file_single_byte(argv[1], memory_byte_arr, MEMORY_BYTE_ARR_SIZE);
 
     while (1) {
+        // printf("PC = %i, ", program_counter);
         parse_binary(instruction_arr[program_counter/4], registers, &program_counter, memory_byte_arr);
+        // printf(", Register[1] = %i\n", registers[1]);
     }
 
     return 0;
@@ -236,6 +237,6 @@ int main(int argc, char * argv[]) {
         //     printf("R[%i] = %i\n", i, registers[i]);
         // }
 
-    // printf("PC = %i, ", program_counter);
+    
 
         
