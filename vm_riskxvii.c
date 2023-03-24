@@ -58,7 +58,8 @@ void parse_file(char * filename, int * buffer) {
     if (binaryfile == NULL)
         printf("Failed to read file: %s\n", filename);
 
-    fread(buffer, sizeof(int), MEMORY_SIZE, binaryfile);
+    if (fread(buffer, sizeof(int), MEMORY_SIZE, binaryfile)) {}
+
     fclose(binaryfile);
 
     return;

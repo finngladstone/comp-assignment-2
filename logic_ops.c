@@ -40,7 +40,7 @@ int console_read_char() {
 int console_read_signed_int() {
     int c;
 
-    scanf("%d", &c);
+    if (scanf("%d", &c)) {}
 
     return c;
 }

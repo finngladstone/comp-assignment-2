@@ -27,15 +27,6 @@ struct data {
     int rs2;
 };
 
-/* 
-    isolate_bits
-    Calculates integer value of certain bits from an integer
-    :: uint32_t i :: Integer to gather data from
-    :: start_index :: Index from which we start gathering bits (reverse 0-indexed)
-    :: n :: number of bits to extract
-    Returns desired isolated bits as uint32_t
-*/
-
 uint32_t isolate_bits(uint32_t i, int start_index, int n) {
     return (((1 << n) - 1) & (i >> start_index));
 }
@@ -50,10 +41,6 @@ uint8_t get_opcode(uint32_t i) {
 }
 
 uint8_t get_func3(uint32_t i) {
-    // uint8_t func3_mask = 0x70;
-    // uint8_t byte2 = (i >> (8 * 1)) & 0xff;
-
-    // return func3_mask & byte2;
 
     return isolate_bits(i, 12, 3);
 }
@@ -63,7 +50,6 @@ uint8_t get_func7(uint32_t i) {
 }
 
 uint8_t get_rd(uint32_t i) {
-    // return (((1 << 5) - 1) & (i >> (7))); // how the fuck is this working
     return isolate_bits(i, 7, 5);
 }
 
@@ -112,14 +98,6 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
 
         case TYPE_SB:
         {
-            // uint32_t result = 0x0;
-            // result = isolate_bits(i, 0, 1) << 11 | result;
-            // result = isolate_bits(i, 1, 4) | result;
-            // result = isolate_bits(i, 25, 5) << 5 | result;
-            // result = isolate_bits(i, 31, 1) << 12 | result;
-
-            // result = (int32_t) (result << 19) >> 19;
-            // return result;
 
             uint32_t result = 0x0;
             result = isolate_bits(i, 7, 1) << 11 | result;
@@ -135,11 +113,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
         case TYPE_U: // good
         {
             uint32_t result = isolate_bits(i, 12, 20);
-            // result = result << 12;
             result = (int32_t) (result << 20) >> 20;
-
-            // int32_t result = isolate_bits(i, 12, 20);
-            // result = result << 11;
             
             return result;
         }
@@ -166,29 +140,12 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
 } 
 
 uint8_t get_rs_1(uint32_t i) {
-    // return (((1 << 5) - 1) & (i >> (15)));
     return isolate_bits(i, 15, 5);
 }
 
 uint8_t get_rs_2(uint32_t i) {
     return isolate_bits(i, 20, 5);
 }
-
-// struct data* get_data_struct(uint32_t i) {
-//     struct data* new = (struct data*)malloc(sizeof(struct data)); 
-    
-//     new->opcode = get_opcode(i);
-//     new->func3 = get_func3(i);
-//     new->func7 = get_func7(i);
-    
-//     new->imm = get_imm(i);
-//     new->rd = get_rd(i);
-
-//     new->rs1 = get_rs_1(i);
-//     new->rs2 = get_rs_2(i);
-
-//     return new;
-// }
 
 void update_data_struct(struct data * codes, uint32_t i) {
     codes->opcode = get_opcode(i);
@@ -207,7 +164,3 @@ int within_range(int lower, int upper, int val) {
         return 1;
     return 0;
 }
-
-// int32_t sign_extend(uint32_t i, int n) {
-
-// }
