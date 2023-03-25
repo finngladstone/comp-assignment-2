@@ -106,10 +106,12 @@ void parse_binary(ARGS) {
     struct data codes = { 0 };
     
     int opcode_valid = update_data_struct(&codes, i);
+    
     if (opcode_valid == 0) {
-        printf("Instruction not implemented: %x\n", i);
-        program_count += 4;
-        return;
+        printf("Instruction Not Implemented: 0x%x\n", i);
+        
+        dump_register_banks(registers, *program_count);
+        exit(1);
     }
 
     // printf("Opcode = %x, func3 = %i, func7 = %i, RD = %i, rs1 = %i, rs2 = %i, imm = %i\n", 
