@@ -61,6 +61,10 @@ void dump_memory_word(int value) {
     printf("%x", value);
 }
 
+void vm_malloc() {}
+
+void vm_free() {}
+
 
 /* Function routers for memory-based virtual routines */
 

@@ -60,8 +60,10 @@ void parse_file(char * filename, int * buffer, int size) {
     FILE * binaryfile;
 
     binaryfile = fopen(filename, "rb");
-    if (binaryfile == NULL)
+    if (binaryfile == NULL) {
         printf("Failed to read file: %s\n", filename);
+        exit(1);
+    }
 
     if (fread(buffer, sizeof(buffer[0]), size, binaryfile)) {}
 
@@ -74,8 +76,10 @@ void parse_file_single_byte(char * filename, unsigned char * buffer, int size) {
     FILE * binaryfile;
 
     binaryfile = fopen(filename, "rb");
-    if (binaryfile == NULL)
+    if (binaryfile == NULL) {
         printf("Failed to read file: %s\n", filename);
+        exit(1);
+    }
 
     if (fread(buffer, sizeof(buffer[0]), size, binaryfile)) {}
 
