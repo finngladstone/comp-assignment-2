@@ -227,7 +227,7 @@ int main(int argc, char * argv[]) {
     // VM instructions
     int instruction_arr[INSTRUCTION_SIZE] = { 0 };
     
-    // byte array of input of first 2048b from .mi file
+    // Byte array of input of first 2048b from .mi file
     unsigned char memory_byte_arr[MEMORY_BYTE_ARR_SIZE] = { 0 }; 
 
     program_counter = 0;
