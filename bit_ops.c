@@ -134,8 +134,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
         }
 
         default:
-            printf("Failed to parse imm\n");
-            exit(1);
+            return 0;
     }
 } 
 
@@ -147,8 +146,37 @@ uint8_t get_rs_2(uint32_t i) {
     return isolate_bits(i, 20, 5);
 }
 
-void update_data_struct(struct data * codes, uint32_t i) {
+
+int check_opcode(int opcode) {
+    
+    switch(opcode) {
+        case TYPE_R: 
+            return 1;
+        case TYPE_I:
+            return 1;
+        case TYPE_I_2:
+            return 1;
+        case TYPE_I_3:
+            return 1;
+        case TYPE_S:
+            return 1;
+        case TYPE_SB:
+            return 1;
+        case TYPE_U:
+            return 1;
+        case TYPE_UJ:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+int update_data_struct(struct data * codes, uint32_t i) {
     codes->opcode = get_opcode(i);
+
+    if (check_opcode(codes->opcode) != 1)
+        return 0;
+
     codes->func3 = get_func3(i);
     codes->func7 = get_func7(i);
     
@@ -157,6 +185,8 @@ void update_data_struct(struct data * codes, uint32_t i) {
 
     codes->rs1 = get_rs_1(i);
     codes->rs2 = get_rs_2(i);
+
+    return 1;
 }
 
 int within_range(int lower, int upper, int val) {
@@ -164,3 +194,4 @@ int within_range(int lower, int upper, int val) {
         return 1;
     return 0;
 }
+

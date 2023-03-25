@@ -37,8 +37,12 @@ void printbits(int x)
 
 /* Error blocks */
 
+void instruction_invalid(int i) {
+    printf("Instruction not implemented - %x\n", i);
+}
+
 void func3_fail(int func3) {
-    printf("Func3 %i - undefined behaviour.\n", func3);
+    printf("Invalid func3 - %i\n", func3);
     exit(1);
 }
 
@@ -100,7 +104,13 @@ void (*TYPE_SB_Pointer[8])(ARGS2) = {beq, bne, NULL, NULL, blt, bge, bltu, bgeu}
 void parse_binary(ARGS) { 
     // printf("%i\n", i);
     struct data codes = { 0 };
-    update_data_struct(&codes, i);
+    
+    int opcode_valid = update_data_struct(&codes, i);
+    if (opcode_valid == 0) {
+        printf("Instruction not implemented: %x\n", i);
+        program_count += 4;
+        return;
+    }
 
     // printf("Opcode = %x, func3 = %i, func7 = %i, RD = %i, rs1 = %i, rs2 = %i, imm = %i\n", 
     //     codes.opcode, codes.func3, codes.func7, codes.rd, codes.rs1, codes.rs2, codes.imm);
@@ -198,8 +208,8 @@ void parse_binary(ARGS) {
 
         default:
         {
-            opcode_fail();
-            break;
+            printf("This should not occur\n");
+            exit(1);
         }
     }
 }
