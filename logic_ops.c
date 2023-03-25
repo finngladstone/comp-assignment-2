@@ -11,7 +11,7 @@ void memory_address_invalid(int address) {
 
 /* Default arguments*/
 
-#define LOGIC_OP_ARGS struct data codes, int * registers, int * program_count, uint8_t * ram
+#define LOGIC_OP_ARGS struct data codes, uint32_t * registers, int * program_count, uint8_t * ram
 
 /* Virtual routines */
 
@@ -24,7 +24,7 @@ void console_write_signed_int(int value) {
 }
 
 void console_write_unsigned_int(int value) {
-    printf("%u", value);
+    printf("%x", value);
 }
 
 void halt() {
@@ -49,7 +49,7 @@ void dump_pc(int pc) {
     printf("%x", pc);
 }
 
-void dump_register_banks(int * registers, int program_counter) {
+void dump_register_banks(uint32_t * registers, int program_counter) {
     printf("PC = 0x%08x;\n", program_counter);
     
     for (int i = 0; i < 32; i++) {
@@ -64,7 +64,7 @@ void dump_memory_word(int value) {
 
 /* Function routers for memory-based virtual routines */
 
-void write_to_memory(int address, int value, int program_counter, int * registers, unsigned char * ram, int bytes) {
+void write_to_memory(int address, int value, int program_counter, uint32_t * registers, unsigned char * ram, int bytes) {
     // printf("write called, addr = %i, value = %i\n", address, value);
     
     switch (address) {

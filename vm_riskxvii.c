@@ -12,8 +12,8 @@
 
 /* Etc */
 
-#define ARGS uint32_t i, int * registers, int * program_count, unsigned char * ram // this is template for binary parse
-#define ARGS2 struct data codes, int * registers, int * program_count, unsigned char * ram // this is template for logic / mem ops
+#define ARGS uint32_t i, uint32_t * registers, int * program_count, unsigned char * ram // this is template for binary parse
+#define ARGS2 struct data codes, uint32_t * registers, int * program_count, unsigned char * ram // this is template for logic / mem ops
 #define ARGS3 codes, registers, program_count, ram // this gets sent to logic / mem ops
 
 /* Opcode hex values */
@@ -217,7 +217,7 @@ void parse_binary(ARGS) {
 }
 
 int main(int argc, char * argv[]) {
-    int registers[REGISTER_COUNT] = { 0 };
+    uint32_t registers[REGISTER_COUNT] = { 0 };
     int program_counter = 0;
     
     // VM instructions
@@ -230,6 +230,7 @@ int main(int argc, char * argv[]) {
  
     parse_file(argv[1], instruction_arr, INSTRUCTION_SIZE);
     parse_file_single_byte(argv[1], memory_byte_arr, MEMORY_BYTE_ARR_SIZE);
+    
 
     while (1) {
         // printf("PC = %i, ", program_counter);
