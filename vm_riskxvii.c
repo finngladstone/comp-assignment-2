@@ -9,6 +9,7 @@
 #define REGISTER_COUNT 32
 #define INSTRUCTION_SIZE 256
 #define MEMORY_BYTE_ARR_SIZE 2048
+#define HEAP_BANK_SIZE 128
 
 /* Etc */
 
@@ -28,12 +29,6 @@
 #define TYPE_SB 0x63
 #define TYPE_U 0x37
 #define TYPE_UJ 0x6F
-
-void printbits(int x)
-{
-    for(int i=sizeof(x)<<3; i; i--)
-        putchar('0'+((x>>(i-1))&1));
-}
 
 /* Error blocks */
 
@@ -95,7 +90,7 @@ void parse_file_single_byte(char * filename, unsigned char * buffer, int size) {
 
 void (*TYPE_R_Pointer[8])(ARGS2) = {add, sll, slt, sltu, xor, srl, or, and};
 
-void (*TYPE_I_Pointer[7])(ARGS2) = {addi, NULL, slti, sltiu, xori, ori, andi};
+void (*TYPE_I_Pointer[8])(ARGS2) = {addi, NULL, slti, sltiu, xori, NULL, ori, andi};
 
 void (*TYPE_I_Pointer2[6])(ARGS2) = {lb, lh, lw, NULL, lbu, lhu};
 
@@ -131,14 +126,14 @@ void parse_binary(ARGS) {
                 else if (codes.func3 == 5) 
                     sra(ARGS3);
                 else 
-                    func3_fail(codes.func3);
+                    func3_fail(codes.opcode);
             } 
             
             else if (codes.func7 == 0) {
                 if (within_range(0, 7, codes.func3))
                     (*TYPE_R_Pointer[codes.func3])(ARGS3);
                 else 
-                    func3_fail(codes.func3);
+                    func3_fail(codes.opcode);
             } else 
                 func7_fail();
             
@@ -147,10 +142,10 @@ void parse_binary(ARGS) {
 
         case TYPE_I:    
         {
-            if (within_range(0, 6, codes.func3) && codes.func3 != 1) {
+            if (within_range(0, 7, codes.func3) && codes.func3 != 1 && codes.func3 != 5) {
                 (*TYPE_I_Pointer[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes.func3);
+                func3_fail(codes.opcode);
             }
 
             break;
@@ -161,7 +156,7 @@ void parse_binary(ARGS) {
             if (within_range(0, 5, codes.func3) && codes.func3 != 3) {
                 (*TYPE_I_Pointer2[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes.func3);
+                func3_fail(codes.opcode);
             }
 
             break;
@@ -172,7 +167,7 @@ void parse_binary(ARGS) {
             if (codes.func3 == 0x0)
                 jalr(ARGS3);
             else
-                func3_fail(codes.func3);
+                func3_fail(codes.opcode);
             
             break;
         }
@@ -182,7 +177,7 @@ void parse_binary(ARGS) {
             if (within_range(0, 2, codes.func3)) {
                 (*TYPE_S_Pointer[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes.func3);
+                func3_fail(codes.opcode);
             }
 
             break;
@@ -194,7 +189,7 @@ void parse_binary(ARGS) {
             if (within_range(0, 1, codes.func3) || within_range(4, 7, codes.func3)) {
                 (*TYPE_SB_Pointer[codes.func3])(ARGS3);
             } else {
-                func3_fail(codes.func3);
+                func3_fail(codes.opcode);
             }
 
             break;
@@ -229,6 +224,9 @@ int main(int argc, char * argv[]) {
     
     // Byte array of input of first 2048b from .mi file
     unsigned char memory_byte_arr[MEMORY_BYTE_ARR_SIZE] = { 0 }; 
+
+    // heap
+    // struct heap_bank * heap[HEAP_BANK_SIZE] = { NULL };
 
     program_counter = 0;
  

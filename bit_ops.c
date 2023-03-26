@@ -34,10 +34,12 @@ uint32_t isolate_bits(uint32_t i, int start_index, int n) {
 /* Parsing instruction codes */
 
 uint8_t get_opcode(uint32_t i) {
-    uint8_t byte_1 = i & 0xff;
-    uint8_t mask = 0x7F;
+    // uint8_t byte_1 = i & 0xff;
+    // uint8_t mask = 0x7F;
 
-    return mask & byte_1;
+    // return mask & byte_1;
+
+    return isolate_bits(i, 0, 7);
 }
 
 uint8_t get_func3(uint32_t i) {

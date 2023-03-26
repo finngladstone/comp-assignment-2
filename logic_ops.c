@@ -110,7 +110,19 @@ void write_to_memory(int address, int value, int program_counter, uint32_t * reg
 
         case 0x0828:
         {
-            dump_memory_word(value); // fucked
+            dump_memory_word(value); 
+            break;
+        }
+
+        case 0x0830:
+        {
+            printf("Malloc - value = %i\n", value);
+            break;
+        }
+
+        case 0x0834:
+        {
+            printf("Free - value = %i\n", value);
             break;
         }
 
