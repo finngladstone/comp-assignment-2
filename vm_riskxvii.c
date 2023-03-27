@@ -1,34 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include "header.h"
 
-#include "logic_ops.c"
 
-/* Key constants */
-
-#define REGISTER_COUNT 32
-#define INSTRUCTION_SIZE 256
-#define MEMORY_BYTE_ARR_SIZE 2048
-#define HEAP_BANK_SIZE 128
-
-/* Etc */
-
-#define ARGS uint32_t i, uint32_t * registers, int * program_count, unsigned char * ram // this is template for binary parse
-#define ARGS2 struct data codes, uint32_t * registers, int * program_count, unsigned char * ram // this is template for logic / mem ops
-#define ARGS3 codes, registers, program_count, ram // this gets sent to logic / mem ops
-
-/* Opcode hex values */
-
-#define TYPE_R 0x33
-
-#define TYPE_I 0x13
-#define TYPE_I_2 0x3
-#define TYPE_I_3 0x67
-
-#define TYPE_S 0x23
-#define TYPE_SB 0x63
-#define TYPE_U 0x37
-#define TYPE_UJ 0x6F
+/* Malloc / Free VM implementation */
 
 /* Error blocks */
 
@@ -224,33 +197,19 @@ int main(int argc, char * argv[]) {
     
     // Byte array of input of first 2048b from .mi file
     unsigned char memory_byte_arr[MEMORY_BYTE_ARR_SIZE] = { 0 }; 
-
-    // heap
-    // struct heap_bank * heap[HEAP_BANK_SIZE] = { NULL };
-
-    program_counter = 0;
  
+    // Update arrs (1 4B array for instructions, 1 1B array for data)
     parse_file(argv[1], instruction_arr, INSTRUCTION_SIZE);
     parse_file_single_byte(argv[1], memory_byte_arr, MEMORY_BYTE_ARR_SIZE);
-    
 
     while (1) {
-        // printf("PC = %i, ", program_counter);
         parse_binary(instruction_arr[program_counter/4], registers, &program_counter, memory_byte_arr);
-        // printf(", Register[1] = %i\n", registers[1]);
     }
 
     return 0;
 }
 
-/* Testing code */
 
-// printf("Press ENTER key to Continue\n");  
-        // getchar();
-
- // for (int i = 0; i < 32; i++) {
-        //     printf("R[%i] = %i\n", i, registers[i]);
-        // }
 
     
 

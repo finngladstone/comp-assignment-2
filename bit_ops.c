@@ -1,31 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-
-/* opcode hex values */
-
-#define TYPE_R 0x33
-#define TYPE_I 0x13
-#define TYPE_I_2 0x3
-#define TYPE_I_3 0x67
-
-#define TYPE_S 0x23
-#define TYPE_SB 0x63
-#define TYPE_U 0x37
-#define TYPE_UJ 0x6F
-
-struct data {
-    int opcode;
-    
-    int func3;
-    int func7;
-
-    int rd;
-    int imm;
-
-    int rs1;
-    int rs2;
-};
+#include "header.h"
 
 uint32_t isolate_bits(uint32_t i, int start_index, int n) {
     return (((1 << n) - 1) & (i >> start_index));
@@ -108,6 +81,7 @@ int32_t get_imm(uint32_t i) { //TYPE COMPATIBLE
             result = isolate_bits(i, 31, 1) << 12 | result;
 
             result = (int32_t) (result << 19) >> 19;
+
             return result;
 
         }
