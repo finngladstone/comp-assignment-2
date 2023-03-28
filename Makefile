@@ -20,8 +20,17 @@ $(TARGET):$(OBJ)
 run:
 	./$(TARGET)
 
-test:
-	@echo what are we testing?!
+tests:
+	gcc --coverage vm_riskxvii.c bit_ops.c logic_ops.c -o vm_riskxvii_test
 
+run_test:
+	./vm_riskxvii_coverage tests/arithmetic/arithmetic.mi
+	./vm_riskxvii_coverage tests/console_writes/console_writes.mi
+	./vm_riskxvii_coverage tests/dump/dump.mi
+	./vm_riskxvii_coverage tests/test_invalid/test_invalid.mi 
+
+	gcovr
+	
+# note return value of 1 is expected behaviour!
 clean:
 	rm -f *.o *.obj $(TARGET)

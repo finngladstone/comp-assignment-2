@@ -8,6 +8,7 @@
 
 # Ignore build directory that contains tmp binary files
 build/
+Compiler/
 
 # Files (with extension name) to include.
 # e.g. except sources, tests, and configurations.
